@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 
 import Scene from "./Scene";
+import Sun from "./Sun";
 
 const App = () => (
-  <Canvas camera={{ position: [0, 50, 150], far: 200000 }} >
+  <Canvas camera={{ position: [0, 50, 150], far: 200000 }}>
     <color attach="background" args={["black"]} />
     <ambientLight intensity={0.25} />
 
@@ -14,6 +16,7 @@ const App = () => (
 
     <Physics gravity={[0, 0, 0]}>
       <Scene />
+      {/* <Sun /> */}
     </Physics>
 
     <EffectComposer>

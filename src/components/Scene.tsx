@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import useGravity from "../hooks/useGravity";
 import { CameraProvider } from "../context/Camera";
-// import { ExplosionProvider } from "../context/Explosions";
-// import { TrailProvider } from "../context/Trails";
+import { ExplosionProvider } from "../context/Explosions";
+import { TrailProvider } from "../context/Trails";
 
 import Sun from "./Sun";
 // import Stars from "./Stars";
@@ -14,19 +14,13 @@ const Scene = () => {
   // useGravity();
 
   return (
-   
     <CameraProvider>
-      <ExplosionProvider>
-        <Sun />
-
-        <TrailProvider>
-          {/* <Planets /> */}
-        </TrailProvider>
-
-        {/* <Stars /> */}
-      </ExplosionProvider>
+      {/* <ExplosionProvider> */}
+      <Sun />
+      {/* null */}
+      {/* <Stars /> */}
+      {/* </ExplosionProvider> */}
     </CameraProvider>
-    
   );
 };
 
