@@ -2,7 +2,7 @@
 import { extend } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
-import noise from "../shaders/noise.glsl";
+
 import { SUN_RADIUS } from "../config/constants";
 // import { useCamera } from "../context/Camera";
 
@@ -29,7 +29,7 @@ const Sun = () => {
         varying vec2 vUv;
         varying vec3 vPosition;
 
-        ${noise}
+       
 
         void main() {
             float noiseValue = noise(vPosition + time);
