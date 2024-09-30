@@ -1,13 +1,25 @@
-// import { useRef } from "react";
-import { extend } from "@react-three/fiber";
+import { useRef } from "react";
+import { useFrame, extend } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
-
+import noise from "./../shaders/noise.glsl";
 import { SUN_RADIUS } from "../config/constants";
-// import { useCamera } from "../context/Camera";
+import { useCamera } from "../context/Camera";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      customShaderMaterial: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        ref?: React.Ref<any>;
+        emissiveIntensity?: number;
+        time?: number;
+      };
+    }
+  }
+}
 
 const Sun = () => {
-  // const { handleFocus } = useCamera();
+  const { handleFocus } = useCamera() as any;
 
   const CustomShaderMaterial = shaderMaterial(
     { emissiveIntensity: 1.0, time: 0 },
@@ -29,7 +41,7 @@ const Sun = () => {
         varying vec2 vUv;
         varying vec3 vPosition;
 
-       
+        ${noise}
 
         void main() {
             float noiseValue = noise(vPosition + time);
@@ -44,23 +56,25 @@ const Sun = () => {
 
   extend({ CustomShaderMaterial });
 
-  // const shaderRef = useRef();
+  const shaderRef = useRef<{ uniforms: { time: { value: number } } }>(null);
 
   // Update the time uniform on each frame
-  // useFrame(({ clock }) => {
-  //   shaderRef.current.uniforms.time.value = clock.elapsedTime;
-  // });
+  useFrame(({ clock }) => {
+    if (shaderRef.current) {
+      shaderRef.current.uniforms.time.value = clock.elapsedTime;
+    }
+  });
 
   return (
     <RigidBody
       colliders="ball"
       userData={{ type: "Sun" }}
       type="kinematicPosition"
-      //   onClick={handleFocus}
+      onClick={handleFocus}
     >
       <mesh>
         <sphereGeometry args={[SUN_RADIUS, 32, 32]} />
-        {/* <customShaderMaterial ref={shaderRef} emissiveIntensity={5} time={0} /> */}
+        <customShaderMaterial ref={shaderRef as React.Ref<any>} emissiveIntensity={5} time={0} />
       </mesh>
 
       <pointLight
