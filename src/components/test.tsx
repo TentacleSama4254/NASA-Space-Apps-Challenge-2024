@@ -110,10 +110,11 @@ const Test = () => {
     const inclination = THREE.MathUtils.degToRad(15.1007464); // Inclination in radians
     const omega = THREE.MathUtils.degToRad(203.6490232); // Argument of periapsis in radians
     const raan = THREE.MathUtils.degToRad(111.3920029); // Right Ascension of the Ascending Node in radians
+    const q = -4.375; // Perihelion distance in AU
     let clock = 0;
 
     // Increase the resolution by increasing the number of steps
-    const steps = 5000; // Number of steps for higher resolution
+    const steps = 1000; // Number of steps for higher resolution
     for (let t = 0; t <= 120; t += 120 / steps) {
       const point = propagate(t, a, e, inclination, omega, raan);
       orbitVertices.push(point.x, point.y, point.z);
@@ -126,7 +127,37 @@ const Test = () => {
     const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
     scene.add(orbitLine);
 
-    camera.position.z = 5;
+    // Calculate the position of the perihelion
+    const perihelionPoint = new THREE.Vector3(q, 0, 0);
+    perihelionPoint.applyAxisAngle(new THREE.Vector3(0, 1, 0), inclination); // Pitch
+    perihelionPoint.applyAxisAngle(new THREE.Vector3(0, 0, 1), omega); // Yaw
+    perihelionPoint.applyAxisAngle(new THREE.Vector3(1, 0, 0), raan); // Roll
+
+    const perihelionGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+    const perihelionMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const perihelionMarker = new THREE.Mesh(
+      perihelionGeometry,
+      perihelionMaterial
+    );
+    perihelionMarker.position.set(
+      perihelionPoint.x,
+      perihelionPoint.y,
+      perihelionPoint.z
+    );
+    scene.add(perihelionMarker);
+
+    // Center the camera orbit around the perihelion point
+    controls.target.set(
+      perihelionPoint.x,
+      perihelionPoint.y,
+      perihelionPoint.z
+    );
+    camera.position.set(
+      perihelionPoint.x + 5,
+      perihelionPoint.y + 5,
+      perihelionPoint.z + 5
+    );
+    controls.update();
 
     const animate = function () {
       requestAnimationFrame(animate);
