@@ -5,6 +5,8 @@ import { ExplosionProvider } from "../context/Explosions";
 import { TrailProvider } from "../context/Trails";
 
 import Sun from "./Sun";
+import Earth from "./Earth";
+import Test from "./test";
 // import Stars from "./Stars";
 // import Planets from "./Planets";
 
@@ -17,7 +19,9 @@ const Scene = () => {
     <CameraProvider>
       {/* <ExplosionProvider> */}
       <Sun />
-      {/* null */}
+      {/* <Earth /> */}
+      {/* <Test /> */}
+      {/* <Planets /> */}
       {/* <Stars /> */}
       {/* </ExplosionProvider> */}
     </CameraProvider>
