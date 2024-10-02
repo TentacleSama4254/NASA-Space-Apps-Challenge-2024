@@ -6,7 +6,9 @@ import { TrailProvider } from "../context/Trails";
 
 import Sun from "./Sun";
 import Earth from "./Earth";
+import Earth2 from "./Earth2";
 import Test from "./test";
+import Globe from "react-globe.gl";
 // import Stars from "./Stars";
 // import Planets from "./Planets";
 
@@ -18,8 +20,10 @@ const Scene = () => {
   return (
     <CameraProvider>
       {/* <ExplosionProvider> */}
-      <Sun />
+      {/* <Sun /> */}
       {/* <Earth /> */}
+      <Earth2 />
+      {/* <Globe  /> */}
       {/* <Test /> */}
       {/* <Planets /> */}
       {/* <Stars /> */}
