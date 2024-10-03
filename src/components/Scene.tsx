@@ -10,7 +10,7 @@ import Earth2 from "./Earth2";
 import Test from "./test";
 import Globe from "react-globe.gl";
 // import Stars from "./Stars";
-// import Planets from "./Planets";
+import Planets from "./Planets";
 
 // Scene component
 const Scene = () => {
@@ -20,12 +20,12 @@ const Scene = () => {
   return (
     <CameraProvider>
       {/* <ExplosionProvider> */}
-      {/* <Sun /> */}
+      <Sun />
       {/* <Earth /> */}
-      <Earth2 />
+      {/* <Earth2 /> */}
       {/* <Globe  /> */}
       {/* <Test /> */}
-      {/* <Planets /> */}
+      <Planets />
       {/* <Stars /> */}
       {/* </ExplosionProvider> */}
     </CameraProvider>

@@ -70,7 +70,7 @@ const Sun = () => {
       colliders="ball"
       userData={{ type: "Sun" }}
       type="kinematicPosition"
-      onClick={handleFocus}
+      // onClick={handleFocus}
     >
       <mesh>
         <sphereGeometry args={[SUN_RADIUS, 32, 32]} />

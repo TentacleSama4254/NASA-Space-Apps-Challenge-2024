@@ -6,6 +6,8 @@ import { Physics } from "@react-three/rapier";
 
 import Scene from "./Scene";
 import Sun from "./Sun";
+import Test from "./test";
+import System from "./System";
 
 const App = () => (
   <Canvas camera={{ position: [0, 50, 150], far: 200000 }}>
@@ -23,6 +25,8 @@ const App = () => (
       <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
     </EffectComposer>
   </Canvas>
+  // </Test>
+  // <System/>
 );
 
 export default App;
