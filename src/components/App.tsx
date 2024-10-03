@@ -12,7 +12,7 @@ const App = () => (
     <color attach="background" args={["black"]} />
     <ambientLight intensity={0.25} />
 
-    <OrbitControls maxDistance={450} minDistance={50} makeDefault />
+    <OrbitControls maxDistance={450} minDistance={10} makeDefault />
 
     <Physics gravity={[0, 0, 0]}>
       <Scene />
