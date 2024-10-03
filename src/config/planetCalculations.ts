@@ -25,3 +25,18 @@ export const calculateInitialVelocity = (position, respawn) => {
 
     return velocity
 }
+
+export const calculateOrbitalPosition = (a, e, T, t) => {
+  const meanAnomaly = (2 * Math.PI / T) * t;
+  let eccentricAnomaly = meanAnomaly;
+
+  // Solve Kepler's equation iteratively
+  for (let i = 0; i < 5; i++) {
+    eccentricAnomaly = meanAnomaly + e * Math.sin(eccentricAnomaly);
+  }
+
+  const x = a * (Math.cos(eccentricAnomaly) - e);
+  const y = a * Math.sqrt(1 - e * e) * Math.sin(eccentricAnomaly);
+
+  return new Vector3(x, y, 0);
+};

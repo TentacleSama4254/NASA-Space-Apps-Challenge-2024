@@ -25,7 +25,9 @@ const Scene = () => {
       {/* <Earth2 /> */}
       {/* <Globe  /> */}
       {/* <Test /> */}
-      <Planets />
+      <TrailProvider>
+        <Planets />
+      </TrailProvider>
       {/* <Stars /> */}
       {/* </ExplosionProvider> */}
     </CameraProvider>
