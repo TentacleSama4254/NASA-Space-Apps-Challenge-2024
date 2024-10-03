@@ -11,6 +11,7 @@ import Test from "./test";
 import Globe from "react-globe.gl";
 // import Stars from "./Stars";
 import Planets from "./Planets";
+import { Stars } from "@react-three/drei";
 
 // Scene component
 const Scene = () => {
@@ -28,7 +29,7 @@ const Scene = () => {
       <TrailProvider>
         <Planets />
       </TrailProvider>
-      {/* <Stars /> */}
+      <Stars depth={100000} factor={696} saturation={124}/>
       {/* </ExplosionProvider> */}
     </CameraProvider>
   );
