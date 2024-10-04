@@ -12,7 +12,7 @@ import EarthCloudsMap from "../assets/textures/8k_earth_clouds.jpg"
 import EarthNormalMap from "../assets/textures/8k_earth_normal_map.jpg"
 import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg"
 import { TextureLoader } from "three";
-import { ThreeMFLoader } from "three/examples/jsm/Addons.js";
+
 
 import * as THREE from 'three'
 
@@ -56,12 +56,13 @@ const Earth = () => {
       // onClick={handleFocus}
       >
        <ambientLight intensity={0.1}/>
-       <mesh ref = {cloudRef}>
+       <mesh ref = {cloudRef} >
        <sphereGeometry args={[10, 64, 64]} />
        <meshPhongMaterial map={cloudsMap}
         opacity = {1}
         depthWrite = {true}
-        transparent = {true} blending={2}
+        transparent = {true} 
+        blending={2}
         // side = {THREE.DoubleSide}
         />
        </mesh>

@@ -48,9 +48,11 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
 
   // Handle focus
   const handleFocus = (event: { object: any; instanceId?: number }) => {
+    console.log("handleFocus");
     const object = event.object;
     const instanceId = event.instanceId;
-
+    console.log(object, instanceId);
+    
     if (instanceId !== undefined) {
       setFocusedObject({ object, instanceId });
     } else {
