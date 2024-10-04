@@ -39,11 +39,11 @@ const Earth = () => {
 
   useFrame(({clock}) => {
     const elapsedTime = clock.getElapsedTime();
-    earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
+    (earthRef.current as any).rotation.y = elapsedTime/6;
+    (cloudRef.current as any).rotation.y = elapsedTime/6;
+  //   earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
     // cloudRef.current? (cloudRef.current as any).rotation.y = elapsedTime/6: console.log("cloudRef undefined");
-  }
-
-  )
+  } )
 
   return (
     
@@ -67,14 +67,12 @@ const Earth = () => {
         />
        </mesh>
       
-       <instancedMesh onClick={handleFocus}>
-       <mesh ref = {earthRef}>
+\       <mesh ref = {earthRef}>
     
         <sphereGeometry args={[10, 64, 64]} />
         <meshPhongMaterial specularMap={specularMap}/>
         <meshStandardMaterial map={colourMap} normalMap={normalMap}/>
       </mesh>
-      </instancedMesh>
 
     </RigidBody>
   );
