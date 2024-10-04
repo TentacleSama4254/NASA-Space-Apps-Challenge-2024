@@ -9,8 +9,8 @@ import {
 } from "../utils/planetCalculations";
 import { useTrails } from "../context/Trails";
 
-import Planet from "./Planet";
-import {KeplerSolve, propagate} from "../utils/planetCalculations";
+import Asteroid from "./Planet";
+import { KeplerSolve, propagate } from "../utils/planetCalculations";
 
 // Planets component
 const Planets = ({ count = 2 }) => {
@@ -78,7 +78,7 @@ const Planets = ({ count = 2 }) => {
       instances={planetData}
       colliders="ball"
     >
-      <Planet count={planetCount} />
+      <Asteroid count={planetCount} />
     </InstancedRigidBodies>
   );
 };
