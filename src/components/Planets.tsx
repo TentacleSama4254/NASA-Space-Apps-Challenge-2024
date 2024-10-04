@@ -9,7 +9,7 @@ import {
 } from "../utils/planetCalculations";
 import { useTrails } from "../context/Trails";
 
-import Asteroid from "./Planet";
+import Asteroid from "./Asteroid";
 import { KeplerSolve, propagate } from "../utils/planetCalculations";
 
 // Planets component
@@ -23,7 +23,7 @@ const Planets = ({ count = 2 }) => {
   const orbitalParams = useMemo(() => {
     const params = [];
     for (let i = 0; i < count; i++) {
-      const a = 10 + Math.random() * 20; // Semi-major axis
+      const a = 50 + Math.random() * 20; // Semi-major axis
       const e = Math.random() * 0.5; // Eccentricity
       const inclination = THREE.MathUtils.degToRad(Math.random() * 180); // Inclination in radians
       const omega = THREE.MathUtils.degToRad(Math.random() * 360); // Argument of periapsis in radians

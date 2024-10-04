@@ -12,5 +12,6 @@ export interface AsteroidData {
     type: string;
     key: string;
   };
-  orbit: OrbitalParams;
+    orbit: OrbitalParams;
+    count : number;         //temp
 }

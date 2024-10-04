@@ -16,6 +16,7 @@ const Asteroid: React.FC<AsteroidData> = ({
   scale,
   userData,
   orbit,
+  count
 }) => {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const cameraContext = useCamera();
@@ -24,8 +25,9 @@ const Asteroid: React.FC<AsteroidData> = ({
   const texture = useLoader(TextureLoader, "/textures/planet.jpg");
 
   // Create a random color for each instance
+  const instanceColors = useMemo(() => {
     const colors = new Float32Array(count * 3);
-
+    for (let i = 0; i < count; i++) {
       // Random natural looking planet hue
       const hue = 250 + Math.random() * 50;
 
@@ -35,7 +37,9 @@ const Asteroid: React.FC<AsteroidData> = ({
 
       const hslColor = new Color(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
       hslColor.toArray(colors, i * 3);
-    
+    }
+    return colors;
+  }, [count]);
 
   return (
     <instancedMesh
