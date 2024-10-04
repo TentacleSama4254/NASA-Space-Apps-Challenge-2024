@@ -80,7 +80,7 @@ const Sun = () => {
       <pointLight
         position={[0, 0, 0]}
         intensity={50000}
-        color={"rgb(255, 207, 55)"}
+        color={"rgb(220, 250, 249)"} decay={1.95} 
       />
     </RigidBody>
   );

@@ -16,9 +16,9 @@ const Scene = () => {
 
   return (
     <CameraProvider>
-      <Earth/>
+      <Earth />
       {/* <ExplosionProvider> */}
-      {/* <Sun /> */}
+      <Sun />
       {/* null */}
       {/* <Stars /> */}
       {/* </ExplosionProvider> */}

@@ -14,6 +14,8 @@ import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg"
 import { TextureLoader } from "three";
 import { ThreeMFLoader } from "three/examples/jsm/Addons.js";
 
+import * as THREE from 'three'
+
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -27,32 +29,51 @@ declare global {
 }
 
 const Earth = () => {
-  const { handleFocus } = useCamera() as any;
+  const cameraContext = useCamera();
+  const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
   const [colourMap, normalMap, specularMap, cloudsMap] = useLoader(TextureLoader, [EarthDayMap,EarthNormalMap, EarthSpecularMap, EarthCloudsMap])
 
+  const earthRef = useRef() as any;
+  const cloudRef = useRef() as any;
+
+  useFrame(({clock}) => {
+    const elapsedTime = clock.getElapsedTime();
+    earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
+    // cloudRef.current? (cloudRef.current as any).rotation.y = elapsedTime/6: console.log("cloudRef undefined");
+  }
+
+  )
+
   return (
+    
     <RigidBody
+      
       colliders="ball"
       userData={{ type: "Earth" }}
       type="kinematicPosition"
+      position={[50,50,50]}
       // onClick={handleFocus}
       >
-       <ambientLight intensity={1}/>
-       <mesh>
-       <sphereGeometry args={[10, 32, 32]} />
+       <ambientLight intensity={0.1}/>
+       <mesh ref = {cloudRef}>
+       <sphereGeometry args={[10, 64, 64]} />
        <meshPhongMaterial map={cloudsMap}
-        opacity = {0.4}
+        opacity = {1}
         depthWrite = {true}
-        transparent = {true}
+        transparent = {true} blending={2}
+        // side = {THREE.DoubleSide}
         />
        </mesh>
-       <ambientLight intensity={1}/>
-       <mesh>
-        <sphereGeometry args={[10, 32, 32]} />
+      
+       <instancedMesh onClick={handleFocus}>
+       <mesh ref = {earthRef}>
+    
+        <sphereGeometry args={[10, 64, 64]} />
         <meshPhongMaterial specularMap={specularMap}/>
         <meshStandardMaterial map={colourMap} normalMap={normalMap}/>
       </mesh>
+      </instancedMesh>
 
     </RigidBody>
   );

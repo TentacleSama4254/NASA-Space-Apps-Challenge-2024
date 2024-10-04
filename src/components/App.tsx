@@ -10,9 +10,9 @@ import Sun from "./Sun";
 const App = () => (
   <Canvas camera={{ position: [0, 50, 150], far: 200000 }}>
     <color attach="background" args={["black"]} />
-    <ambientLight intensity={0.25} />
+    <ambientLight intensity={0} />
 
-    <OrbitControls maxDistance={450} minDistance={10} makeDefault />
+    <OrbitControls maxDistance={1450} minDistance={10} makeDefault />
 
     <Physics gravity={[0, 0, 0]}>
       <Scene />
