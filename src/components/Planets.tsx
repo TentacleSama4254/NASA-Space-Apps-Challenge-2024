@@ -76,9 +76,11 @@ const Planets = ({ count = 2 }) => {
     <InstancedRigidBodies
       ref={planetsRef}
       instances={planetData}
-      colliders="ball"
+      // colliders=""
     >
-      <Asteroid count={planetCount} />
+      {planetData.map((planet, index) => (
+        <Asteroid  {...planet} />
+      ))}
     </InstancedRigidBodies>
   );
 };
