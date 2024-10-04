@@ -51,5 +51,5 @@ const Earth: React.FC = () => {
     </mesh>
   );
 };
-//test commit
+//test commit for contributions 2
 export default Earth;
