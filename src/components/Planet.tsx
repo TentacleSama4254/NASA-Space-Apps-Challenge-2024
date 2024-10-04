@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { TextureLoader, Color } from "three";
 import { useLoader } from "@react-three/fiber";
 import { useCamera } from "../context/Camera";
+import { now } from "three/examples/jsm/libs/tween.module.js";
 
 interface PlanetProps {
   count: number;

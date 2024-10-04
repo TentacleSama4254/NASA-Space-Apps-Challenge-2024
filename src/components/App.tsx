@@ -7,14 +7,14 @@ import { Physics } from "@react-three/rapier";
 import Scene from "./Scene";
 import Sun from "./Sun";
 import Test from "./test";
-import System from "./System";
+// import System from "./System";
 
 const App = () => (
   <Canvas camera={{ position: [0, 50, 150], far: 200000 }}>
     <color attach="background" args={["black"]} />
     <ambientLight intensity={0.25} />
 
-    <OrbitControls maxDistance={450} minDistance={50} makeDefault />
+    <OrbitControls maxDistance={1050} minDistance={50} makeDefault />
 
     <Physics gravity={[0, 0, 0]}>
       <Scene />

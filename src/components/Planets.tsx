@@ -2,14 +2,15 @@ import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { InstancedRigidBodies } from "@react-three/rapier";
 import { Vector3 } from "three";
-
+import * as THREE from "three";
 import {
   calculateInitialPosition,
   calculateOrbitalPosition,
-} from "../config/planetCalculations";
+} from "../utils/planetCalculations";
 import { useTrails } from "../context/Trails";
 
 import Planet from "./Planet";
+import {KeplerSolve, propagate} from "../utils/planetCalculations";
 
 // Planets component
 const Planets = ({ count = 2 }) => {
@@ -24,8 +25,11 @@ const Planets = ({ count = 2 }) => {
     for (let i = 0; i < count; i++) {
       const a = 10 + Math.random() * 20; // Semi-major axis
       const e = Math.random() * 0.5; // Eccentricity
-      const T = 10 + Math.random() * 20; // Orbital period
-      params.push({ a, e, T });
+      const inclination = THREE.MathUtils.degToRad(Math.random() * 180); // Inclination in radians
+      const omega = THREE.MathUtils.degToRad(Math.random() * 360); // Argument of periapsis in radians
+      const raan = THREE.MathUtils.degToRad(Math.random() * 360); // Right Ascension of the Ascending Node in radians
+      const q = 10 + Math.random() * 20; // Perihelion distance in AU
+      params.push({ a, e, inclination, omega, raan, q });
     }
     return params;
   }, [count]);
@@ -57,8 +61,8 @@ const Planets = ({ count = 2 }) => {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     planetsRef.current?.forEach((planet, index) => {
-      const { a, e, T } = orbitalParams[index];
-      const position = calculateOrbitalPosition(a, e, T, t);
+      const { a, e, inclination, omega, raan, q } = orbitalParams[index];
+      const position = propagate(t, a, e, inclination, omega, raan);
       planet.setTranslation(position);
 
       addTrailPoint(
