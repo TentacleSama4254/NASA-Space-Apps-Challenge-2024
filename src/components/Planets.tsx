@@ -11,6 +11,7 @@ import { useTrails } from "../context/Trails";
 
 import Asteroid from "./Asteroid";
 import { KeplerSolve, propagate } from "../utils/planetCalculations";
+import { AsteroidData } from "../types/Asteroid";
 
 // Planets component
 const Planets = ({ count = 2 }) => {
@@ -36,13 +37,22 @@ const Planets = ({ count = 2 }) => {
 
   // Set up the initial planet data
   const planetData = useMemo(() => {
-    const planets = [];
+    const planets: AsteroidData[] = [];
     for (let i = 0; i < count; i++) {
       const key = "instance_" + Math.random();
       const position = calculateInitialPosition();
       const scale = 0.5 + Math.random() * 1.5;
 
       planets.push({
+        count: 2,
+        orbit: {
+          a: 50 + Math.random() * 20,
+          e: Math.random() * 0.5,
+          inclination: THREE.MathUtils.degToRad(Math.random() * 180),
+          omega: THREE.MathUtils.degToRad(Math.random() * 360),
+          raan: THREE.MathUtils.degToRad(Math.random() * 360),
+          q: 10 + Math.random() * 20,
+        },
         key,
         position,
         scale,
