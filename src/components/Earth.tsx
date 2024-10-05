@@ -54,12 +54,11 @@ const Earth = () => {
       colliders="ball"
       userData={{ type: "Earth" }}
       type="kinematicPosition"
-      position={[50,50,50]}
       // onClick={handleFocus}
       >
        <ambientLight intensity={0.1}/>
        <mesh ref = {cloudRef} >
-       <sphereGeometry args={[10, 64, 64]} />
+       <sphereGeometry args={[10, 132, 132]} />
        <meshPhongMaterial map={cloudsMap}
         opacity = {1}
         depthWrite = {true}
@@ -71,7 +70,7 @@ const Earth = () => {
       
 \       <mesh ref = {earthRef}>
     
-        <sphereGeometry args={[10, 64, 64]} />
+        <sphereGeometry args={[10, 132, 132]} />
         <meshPhongMaterial specularMap={specularMap}/>
         <meshStandardMaterial map={colourMap} normalMap={normalMap}/>
       </mesh>

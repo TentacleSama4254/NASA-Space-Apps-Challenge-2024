@@ -70,6 +70,8 @@ const Sun = () => {
       colliders="ball"
       userData={{ type: "Sun" }}
       type="kinematicPosition"
+      position={[50,50,50]}
+
       // onClick={handleFocus}
     >
       <mesh>
