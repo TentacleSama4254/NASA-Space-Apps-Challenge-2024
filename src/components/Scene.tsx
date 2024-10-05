@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import useGravity from "../hooks/useGravity";
+import { Stars } from "@react-three/drei";
 import { CameraProvider } from "../context/Camera";
 import { ExplosionProvider } from "../context/Explosions";
 import { TrailProvider } from "../context/Trails";
@@ -22,6 +23,7 @@ const Scene = () => {
       {/* null */}
       {/* <Stars /> */}
       {/* </ExplosionProvider> */}
+      <Stars depth={100000} factor={696} saturation={124} />
     </CameraProvider>
   );
 };
