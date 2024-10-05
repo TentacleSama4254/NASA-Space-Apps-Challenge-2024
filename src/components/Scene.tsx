@@ -7,13 +7,9 @@ import { TrailProvider } from "../context/Trails";
 import Earth from "./Earth";
 
 import Sun from "./Sun";
-import Earth from "./Earth";
-import Earth2 from "./Earth2";
 import Test from "./test";
-import Globe from "react-globe.gl";
 // import Stars from "./Stars";
 import Planets from "./Planets";
-import { Stars } from "@react-three/drei";
 
 // Scene component
 const Scene = () => {
