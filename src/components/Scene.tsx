@@ -7,8 +7,13 @@ import { TrailProvider } from "../context/Trails";
 import Earth from "./Earth";
 
 import Sun from "./Sun";
+import Earth from "./Earth";
+import Earth2 from "./Earth2";
+import Test from "./test";
+import Globe from "react-globe.gl";
 // import Stars from "./Stars";
-// import Planets from "./Planets";
+import Planets from "./Planets";
+import { Stars } from "@react-three/drei";
 
 // Scene component
 const Scene = () => {
@@ -20,8 +25,14 @@ const Scene = () => {
       <Earth />
       {/* <ExplosionProvider> */}
       <Sun />
-      {/* null */}
-      {/* <Stars /> */}
+      {/* <Earth /> */}
+      {/* <Earth2 /> */}
+      {/* <Globe  /> */}
+      {/* <Test /> */}
+      <TrailProvider>
+        <Planets />
+      </TrailProvider>
+      <Stars depth={100000} factor={696} saturation={124}/>
       {/* </ExplosionProvider> */}
       <Stars depth={100000} factor={696} saturation={124} />
     </CameraProvider>
