@@ -32,19 +32,20 @@ const Earth = () => {
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
-  const [colourMap, normalMap, specularMap, cloudsMap] = useLoader(TextureLoader, [EarthDayMap,EarthNormalMap, EarthSpecularMap, EarthCloudsMap])
+  const [colourMap, normalMap, specularMap, cloudsMap, lightsMap] = useLoader(TextureLoader, [EarthDayMap,EarthNormalMap, EarthSpecularMap, EarthCloudsMap, EarthNightMap])
 
   const earthRef = useRef() as any;
   const cloudRef = useRef() as any;
+  const lightsRef = useRef() as any;
 
   useFrame(({clock}) => {
     const elapsedTime = clock.getElapsedTime();
-    // (earthRef.current as any).rotation.y = elapsedTime/6;
-    // (cloudRef.current as any).rotation.y = elapsedTime/6;
     (earthRef.current as any).rotation.x = -23.4*Math.PI/180;
     (cloudRef.current as any).rotation.x = -23.4*Math.PI/180;
+    (lightsRef.current as any).rotation.x = -23.4*Math.PI/180;
     earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
     cloudRef.current? (cloudRef.current as any).rotation.y = elapsedTime/6: console.log("cloudRef undefined");
+    lightsRef.current? (lightsRef.current as any).rotation.y = elapsedTime/6: console.log("lightsRef undefined");
   } )
 
   return ( 
@@ -56,7 +57,7 @@ const Earth = () => {
       type="kinematicPosition"
       // onClick={handleFocus}
       >
-       <ambientLight intensity={0.1}/>
+       <ambientLight intensity={0.03}/>
        <mesh ref = {cloudRef} >
        <sphereGeometry args={[10, 132, 132]} />
        <meshPhongMaterial map={cloudsMap}
@@ -67,9 +68,18 @@ const Earth = () => {
         // side = {THREE.DoubleSide}
         />
        </mesh>
+
+       <mesh ref = {lightsRef} >
+       <sphereGeometry args={[10, 132, 132]} />
+       <meshPhongMaterial map={lightsMap}
+        opacity = {1}
+        depthWrite = {true}
+        transparent = {true} 
+        blending={2}
+        />
+       </mesh>
       
 \       <mesh ref = {earthRef}>
-    
         <sphereGeometry args={[10, 132, 132]} />
         <meshPhongMaterial specularMap={specularMap}/>
         <meshStandardMaterial map={colourMap} normalMap={normalMap}/>

@@ -70,7 +70,7 @@ const Sun = () => {
       colliders="ball"
       userData={{ type: "Sun" }}
       type="kinematicPosition"
-      position={[50,50,50]}
+      position={[5000,5000,5000]}
 
       // onClick={handleFocus}
     >
@@ -81,8 +81,8 @@ const Sun = () => {
 
       <pointLight
         position={[0, 0, 0]}
-        intensity={50000}
-        color={"rgb(220, 250, 249)"} decay={1.95} 
+        intensity={3.5}
+        color={"rgb(220, 250, 249)"} decay={0} 
       />
     </RigidBody>
   );
