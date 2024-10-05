@@ -39,13 +39,15 @@ const Earth = () => {
 
   useFrame(({clock}) => {
     const elapsedTime = clock.getElapsedTime();
-    (earthRef.current as any).rotation.y = elapsedTime/6;
-    (cloudRef.current as any).rotation.y = elapsedTime/6;
-  //   earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
-    // cloudRef.current? (cloudRef.current as any).rotation.y = elapsedTime/6: console.log("cloudRef undefined");
+    // (earthRef.current as any).rotation.y = elapsedTime/6;
+    // (cloudRef.current as any).rotation.y = elapsedTime/6;
+    (earthRef.current as any).rotation.x = -23.4*Math.PI/180;
+    (cloudRef.current as any).rotation.x = -23.4*Math.PI/180;
+    earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
+    cloudRef.current? (cloudRef.current as any).rotation.y = elapsedTime/6: console.log("cloudRef undefined");
   } )
 
-  return (
+  return ( 
     
     <RigidBody
       
