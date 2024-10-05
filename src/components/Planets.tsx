@@ -12,12 +12,13 @@ import { useTrails } from "../context/Trails";
 import Asteroid from "./Asteroid";
 import { KeplerSolve, propagate } from "../utils/planetCalculations";
 import { AsteroidData } from "../types/Asteroid";
+import { RigidBody } from "@react-three/rapier";
 
 // Planets component
 const Planets = ({ count = 2 }) => {
   const { addTrailPoint } = useTrails();
 
-  const planetsRef = useRef();
+  const planetsRef = useRef<(RigidBody | null)[] | null>(null);
   const [planetCount, setPlanetCount] = useState(count);
 
   // Define orbital parameters for each planet
@@ -45,6 +46,7 @@ const Planets = ({ count = 2 }) => {
 
       planets.push({
         count: 2,
+        key,
         orbit: {
           a: 50 + Math.random() * 20,
           e: Math.random() * 0.5,
@@ -53,9 +55,9 @@ const Planets = ({ count = 2 }) => {
           raan: THREE.MathUtils.degToRad(Math.random() * 360),
           q: 10 + Math.random() * 20,
         },
-        key,
-        position,
         scale,
+        // position: new THREE.Vector3(position.x, position.y, position.z),
+        position: new THREE.Vector3(position.x, position.y, position.z),
         userData: { type: "Planet", key },
       });
     }
