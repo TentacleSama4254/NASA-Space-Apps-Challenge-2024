@@ -14,6 +14,7 @@ import { KeplerSolve, propagate } from "../utils/planetCalculations";
 import { AsteroidData } from "../types/Asteroid";
 import { RigidBody } from "@react-three/rapier";
 import Earth from "./Earth";
+import usePosition from "../hooks/usePosition"; // Import the custom hook
 
 // Planets component
 const Planets = ({ count = 2 }) => {
@@ -48,22 +49,17 @@ const Planets = ({ count = 2 }) => {
       planets.push({
         count: 2,
         key,
-        orbit: {
-          a: 50,
-          e: 2,
-          inclination: THREE.MathUtils.degToRad(180),
-          omega: THREE.MathUtils.degToRad(360),
-          raan: THREE.MathUtils.degToRad(360),
-          q: 20,
-        },
+        orbit: orbitalParams[i],
         scale,
-        // position: new THREE.Vector3(position.x, position.y, position.z),
         position: new THREE.Vector3(position.x, position.y, position.z),
         userData: { type: "Planet", key },
       });
     }
     return planets;
   }, [count]);
+
+  // Initialize position state for each planet
+  const [positions, updatePosition] = usePosition(new Vector3());
 
   // Update the planet count
   useEffect(() => {
@@ -73,13 +69,13 @@ const Planets = ({ count = 2 }) => {
   // Animate planets in elliptical orbits
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    // if (t < 5) return;
-    console.log(t);
-
     planetsRef.current?.forEach((planet, index) => {
       const { a, e, inclination, omega, raan, q } = orbitalParams[index];
       const position = propagate(t, a, e, inclination, omega, raan);
       planet.setTranslation(position);
+      planet.isMoving(true);
+
+      updatePosition(new Vector3(position.x, position.y, position.z));
 
       addTrailPoint(
         planet.userData.key,
@@ -89,14 +85,9 @@ const Planets = ({ count = 2 }) => {
   });
 
   return (
-    <InstancedRigidBodies
-      ref={planetsRef}
-      instances={planetData}
-      // colliders=""
-    >
+    <InstancedRigidBodies ref={planetsRef} instances={planetData}>
       {planetData.map((planet, index) => (
-        <Asteroid {...planet} />
-        // <Earth {...planet} />
+        <Earth {...planet} position={positions} />
       ))}
     </InstancedRigidBodies>
   );
