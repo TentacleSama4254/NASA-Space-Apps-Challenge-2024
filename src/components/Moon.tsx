@@ -25,11 +25,15 @@ declare global {
   }
 }
 
-const Moon = () => {
+interface EarthProps {
+  position: THREE.Vector3;
+}
+
+const Moon: React.FC<EarthProps> = ({ position }) => {
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
-  const [moonMap] = useLoader(TextureLoader, [MoonMap])
+  const [moonMap] = useLoader(TextureLoader, [MoonMap]);
 
   const moonRef = useRef() as any;
 
@@ -38,24 +42,19 @@ const Moon = () => {
   //   earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
   // } )
 
-  return ( 
-    
-    <RigidBody
-      
-      colliders="ball"
+  return (
+    <instancedMesh
       userData={{ type: "Moon" }}
       type="kinematicPosition"
-      position={[50,50,50]}
+      position={position}
       // onClick={handleFocus}
-      >
-       <ambientLight intensity={0.03}/>
-       <mesh ref = {moonRef} >
-       <sphereGeometry args={[earthSize*0.27, 64, 64]} />
-       <meshPhongMaterial map={moonMap}
-        />
-       </mesh>
-
-    </RigidBody>
+    >
+      <ambientLight intensity={0.03} />
+      <mesh ref={moonRef}>
+        <sphereGeometry args={[earthSize * 0.27, 64, 64]} />
+        <meshPhongMaterial map={moonMap} />
+      </mesh>
+    </instancedMesh>
   );
 };
 

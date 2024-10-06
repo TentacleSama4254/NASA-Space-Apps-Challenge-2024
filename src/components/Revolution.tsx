@@ -20,12 +20,14 @@ import usePosition from "../hooks/usePosition"; // Import the custom hook
 interface RevolutionProps {
   Component: React.ComponentType<any>;
   componentProps?: any;
+  position?: Vector3;
 }
 
 // Planets component
 const Revolution: React.FC<RevolutionProps> = ({
   Component,
   componentProps,
+  position
 }) => {
   const count = 1;
   const { addTrailPoint } = useTrails();

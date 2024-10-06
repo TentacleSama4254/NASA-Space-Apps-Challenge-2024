@@ -28,7 +28,9 @@ const Scene = () => {
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>
-        <Revolution />
+        <Revolution Component={Moon} />
+        <Revolution Component={Moon} />
+        {/* <Revolution Component={Revolution} position={}/> */}
       </TrailProvider>
       <Stars depth={100000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
