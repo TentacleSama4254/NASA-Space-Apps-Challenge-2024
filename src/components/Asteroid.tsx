@@ -1,37 +1,34 @@
-import { useRef } from "react";
-import { useFrame, extend, useLoader } from "@react-three/fiber";
-import { shaderMaterial } from "@react-three/drei";
+import { useRef, useMemo } from "react";
+import { useFrame, useLoader } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
-import noise from "./../shaders/noise.glsl";
-import { SUN_RADIUS } from "../config/constants";
-import { useCamera } from "../context/Camera";
-
-import MoonMap from "./../assets/textures/8k_moon.jpg";
 import { TextureLoader } from "three";
-
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import * as THREE from "three";
+import { useCamera } from "../context/Camera";
 import { earthSize } from "./Earth";
 import { PlanetData } from "../types/SolarBodies";
 
 const STL_Paths = [
-  'assets/asteroids/asteroid_1.stl',
-  'assets/asteroids/asteroid_2.stl',
-  'assets/asteroids/asteroid_3.stl',
-  'assets/asteroids/asteroid_4.stl',
-]
+  "assets/asteroids/asteroid_1.stl",
+  "assets/asteroids/asteroid_2.stl",
+  "assets/asteroids/asteroid_3.stl",
+  "assets/asteroids/asteroid_4.stl",
+];
 
-
-const Asteroid: React.FC<PlanetData> = ({
-  name,
-  position,
-  orbit,
-  scale,
-  texture_path,
-}) => {
+const Asteroid = () => {
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
-  // const [moonMap] = useLoader(TextureLoader, [MoonMap])
+  // Randomly select an STL path
+  const randomSTLPath = useMemo(() => {
+    const randomIndex = Math.floor(Math.random() * STL_Paths.length);
+    return STL_Paths[randomIndex];
+  }, []);
+
+  // Load the selected STL model
+  const geometry = useLoader(STLLoader, randomSTLPath);
+
+  // Load the texture
   const moonMap = useLoader(TextureLoader, texture_path);
 
   const moonRef = useRef() as any;
@@ -52,8 +49,7 @@ const Asteroid: React.FC<PlanetData> = ({
       // onClick={handleFocus}
     >
       <ambientLight intensity={0.03} />
-      <mesh ref={moonRef}>
-        <sphereGeometry args={[earthSize * scale, 64, 64]} />
+      <mesh ref={moonRef} geometry={geometry}>
         <meshPhongMaterial map={moonMap} />
       </mesh>
     </RigidBody>

@@ -12,7 +12,7 @@ import Test from "./test";
 // import Stars from "./Stars";
 import Revolution from "./Revolution";
 import Moon from "./Moon";
-import PlanetProps from "./Solar Bodies";
+// import PlanetProps from "./Solar Bodies";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
 import Planet from "./p";
@@ -45,7 +45,7 @@ const Scene = () => {
       <Sun />
       {/* <Earth /> */}
       {/* <Earth2 /> */}
-      <Asteroid position={[0,0,0]}/>
+      <Asteroid/>
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>
