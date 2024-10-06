@@ -45,7 +45,7 @@ const Scene = () => {
       <Sun />
       {/* <Earth /> */}
       {/* <Earth2 /> */}
-      {/* <Asteroid /> */}
+      <Asteroid position={[0,0,0]}/>
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>

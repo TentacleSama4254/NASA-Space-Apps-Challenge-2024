@@ -13,20 +13,7 @@ import * as THREE from "three";
 import { earthSize } from "./Earth";
 import { PlanetData } from "../types/SolarBodies";
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      customShaderMaterial: React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      > & {
-        ref?: React.Ref<any>;
-        emissiveIntensity?: number;
-        time?: number;
-      };
-    }
-  }
-}
+
 
 const SolarBody: React.FC<PlanetData> = ({
   name,
