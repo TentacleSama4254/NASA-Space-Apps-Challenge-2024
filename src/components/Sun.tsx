@@ -3,7 +3,7 @@ import { useFrame, extend } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import noise from "./../shaders/noise.glsl";
-import { SUN_RADIUS } from "../config/constants";
+import { SUN_OFFSET, SUN_RADIUS } from "../config/constants";
 import { useCamera } from "../context/Camera";
 
 declare global {
@@ -70,7 +70,7 @@ const Sun = () => {
       colliders="ball"
       userData={{ type: "Sun" }}
       type="kinematicPosition"
-      position={[500,500,500]}
+      position={SUN_OFFSET.toArray()}
 
       // onClick={handleFocus}
     >
@@ -81,7 +81,7 @@ const Sun = () => {
 
       <pointLight
         position={[0, 0, 0]}
-        intensity={3.5}
+        intensity={4}
         color={"rgb(220, 250, 249)"} decay={0} 
       />
     </RigidBody>

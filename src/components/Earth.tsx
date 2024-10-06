@@ -77,7 +77,11 @@ const Earth: React.FC<EarthProps> = ({ position = new THREE.Vector3(0,0,0)}) => 
     <instancedMesh
       position={position}
       userData={{ type: "Earth" }}
-      onClick={handleFocus}
+      onClick={((a) => {
+        a.instanceId = a.object.id;
+        handleFocus(a);
+      })}
+      // onClick={handleFocus}
       castShadow
       receiveShadow
       ref={mesh}

@@ -15,6 +15,7 @@ import Moon from "./Moon";
 import PlanetProps from "./Solar Bodies";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
+import Planet from "./p";
 
 // Scene component
 const Scene = () => {
@@ -25,7 +26,7 @@ const Scene = () => {
     <CameraProvider>
       <Earth position={new THREE.Vector3(0, 0, 0)} />
       {/* <Moon /> */}
-      <SolarObj
+      {/* <SolarObj
         name="Mercury"
         position={[40, 0, 0]}
         scale={0.5}
@@ -37,36 +38,21 @@ const Scene = () => {
           raan: 0,
           q: 10,
         }}
-        texture_path={"/textures/8k_mercury.jpg"}
-      />
-      {/* <PlanetProps
-        name="Mercury"
-        position={[40, 0, 0]}
-        scale={50}
-        orbit={{
-          a: 25,
-          e: 1,
-          inclination: 0,
-          omega: 0,
-          raan: 0,
-          q: 10,
-        }}
-        texture_path={"/textures/8k_mercury.jpg"}
+        texture_path={"/textures/8k_mars.jpg"}
       /> */}
 
       {/* <ExplosionProvider> */}
       <Sun />
       {/* <Earth /> */}
       {/* <Earth2 /> */}
-      {/* <Asteroid /> */}
+      <Asteroid position={[0,0,0]}/>
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>
-        <Revolution Component={Moon} />
-        <Revolution Component={Moon} />
+        <Revolution Component={Moon} heliocentric={false} />
         {/* <Revolution Component={Revolution} position={}/> */}
       </TrailProvider>
-      <Stars depth={100000} factor={696} saturation={124} />
+      <Stars depth={150000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
       {/* <Stars depth={100000} factor={696} saturation={124} /> */}
     </CameraProvider>

@@ -21,13 +21,15 @@ interface RevolutionProps {
   Component: React.ComponentType<any>;
   componentProps?: any;
   position?: Vector3;
+  heliocentric?: boolean;
 }
 
 // Planets component
 const Revolution: React.FC<RevolutionProps> = ({
   Component,
   componentProps,
-  position
+  position,
+  heliocentric = true,
 }) => {
   const count = 1;
   const { addTrailPoint } = useTrails();
@@ -85,12 +87,12 @@ const Revolution: React.FC<RevolutionProps> = ({
     const t = clock.getElapsedTime();
     planetsRef.current?.forEach((planet, index) => {
       const { a, e, inclination, omega, raan, q } = orbitalParams[index];
-      const position = propagate(t, a, e, inclination, omega, raan);
+      const position = propagate(t, a, e, inclination, omega, raan, heliocentric);
       // planet.setTranslation(position);
       // planet.isMoving(true);
 
       updatePosition(new Vector3(position.x, position.y, position.z));
-      console.log("planet", planet);
+      // console.log("planet", planet);
       addTrailPoint(
         planet?.userData.key,
         new Vector3(position.x, position.y, position.z)
@@ -102,8 +104,8 @@ const Revolution: React.FC<RevolutionProps> = ({
     <InstancedRigidBodies ref={planetsRef} instances={planetData}>
       {planetData.map((planet, index) => (
         <Component
-          key={planet.key}
-          {...planet}
+        {...planet}
+        key={planet.key}
           position={positions}
           {...componentProps}
         />

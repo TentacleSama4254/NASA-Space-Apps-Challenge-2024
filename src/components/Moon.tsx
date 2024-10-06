@@ -47,7 +47,7 @@ const Moon: React.FC<EarthProps> = ({ position }) => {
       userData={{ type: "Moon" }}
       type="kinematicPosition"
       position={position}
-      // onClick={handleFocus}
+      onClick={handleFocus}
     >
       <ambientLight intensity={0.03} />
       <mesh ref={moonRef}>

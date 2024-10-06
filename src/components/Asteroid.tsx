@@ -1,62 +1,62 @@
-import React, { useRef, useMemo } from "react";
-import * as THREE from "three";
-import { TextureLoader, Color } from "three";
-import { useLoader } from "@react-three/fiber";
+import { useRef } from "react";
+import { useFrame, extend, useLoader } from "@react-three/fiber";
+import { shaderMaterial } from "@react-three/drei";
+import { RigidBody } from "@react-three/rapier";
+import noise from "./../shaders/noise.glsl";
+import { SUN_RADIUS } from "../config/constants";
 import { useCamera } from "../context/Camera";
-import { now } from "three/examples/jsm/libs/tween.module.js";
-import { AsteroidData } from "../types/Asteroid";
 
-interface PlanetProps {
-  count: number;
-}
+import MoonMap from "./../assets/textures/8k_moon.jpg";
+import { TextureLoader } from "three";
 
-const Asteroid: React.FC<AsteroidData> = ({
-  key,
+import * as THREE from "three";
+import { earthSize } from "./Earth";
+import { PlanetData } from "../types/SolarBodies";
+
+const STL_Paths = [
+  'assets/asteroids/asteroid_1.stl',
+  'assets/asteroids/asteroid_2.stl',
+  'assets/asteroids/asteroid_3.stl',
+  'assets/asteroids/asteroid_4.stl',
+]
+
+
+const Asteroid: React.FC<PlanetData> = ({
+  name,
   position,
-  scale,
-  userData,
   orbit,
-  count
+  scale,
+  texture_path,
 }) => {
-  const mesh = useRef<THREE.InstancedMesh>(null);
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
-  const texture = useLoader(TextureLoader, "/textures/planet.jpg");
+  // const [moonMap] = useLoader(TextureLoader, [MoonMap])
+  const moonMap = useLoader(TextureLoader, texture_path);
 
-  // Create a random color for each instance
-  const instanceColors = useMemo(() => {
-    const colors = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      // Random natural looking planet hue
-      const hue = 250 + Math.random() * 50;
+  const moonRef = useRef() as any;
 
-      // Random saturation and lightness
-      const saturation = 40 + Math.random() * 60;
-      const lightness = 60;
-
-      const hslColor = new Color(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
-      hslColor.toArray(colors, i * 3);
-    }
-    return colors;
-  }, [count]);
+  useFrame(({ clock }) => {
+    const elapsedTime = clock.getElapsedTime();
+    moonRef.current
+      ? ((moonRef.current as any).rotation.y = (elapsedTime / 6) * 0.037)
+      : console.log("moonRef undefined");
+  });
 
   return (
-    <instancedMesh
-      ref={mesh}
-      args={[undefined, undefined, count]}
-      onClick={handleFocus}
-      castShadow
-      receiveShadow
+    <RigidBody
+      colliders="ball"
+      userData={{ type: "Moon" }}
+      type="kinematicPosition"
+      position={[50, 0, 0]}
+      // onClick={handleFocus}
     >
-      <sphereGeometry args={[2, 32, 32]}>
-        <instancedBufferAttribute
-          attach="attributes-color"
-          args={[instanceColors, 3, true]}
-        />
-      </sphereGeometry>
-      <meshStandardMaterial vertexColors map={texture} />
-    </instancedMesh>
+      <ambientLight intensity={0.03} />
+      <mesh ref={moonRef}>
+        <sphereGeometry args={[earthSize * scale, 64, 64]} />
+        <meshPhongMaterial map={moonMap} />
+      </mesh>
+    </RigidBody>
   );
 };
 
