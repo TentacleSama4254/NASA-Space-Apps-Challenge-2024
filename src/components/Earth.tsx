@@ -39,7 +39,8 @@ interface EarthProps {
 
 const Earth: React.FC<EarthProps> = ({ position = new THREE.Vector3(0,0,0)}) => {
   const cameraContext = useCamera();
-  const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
+  const handleFocus = cameraContext ? cameraContext.handleFocus : () => { };
+  const mesh = useRef<THREE.InstancedMesh>(null);
 
   const [colourMap, normalMap, specularMap, cloudsMap, lightsMap] = useLoader(
     TextureLoader,
@@ -79,6 +80,7 @@ const Earth: React.FC<EarthProps> = ({ position = new THREE.Vector3(0,0,0)}) => 
       onClick={handleFocus}
       castShadow
       receiveShadow
+      ref={mesh}
     >
       <ambientLight intensity={0.03} />
       <mesh ref={cloudRef}>
