@@ -32,7 +32,7 @@ const Scene = () => {
       </TrailProvider> */}
       <Stars depth={100000} factor={696} saturation={124}/>
       {/* </ExplosionProvider> */}
-      <Stars depth={100000} factor={696} saturation={124} />
+      {/* <Stars depth={100000} factor={696} saturation={124} /> */}
     </CameraProvider>
   );
 };

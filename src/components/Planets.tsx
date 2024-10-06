@@ -13,19 +13,21 @@ import Asteroid from "./Asteroid";
 import { KeplerSolve, propagate } from "../utils/planetCalculations";
 import { AsteroidData } from "../types/Asteroid";
 import { RigidBody } from "@react-three/rapier";
+import Earth from "./Earth";
+import usePosition from "../hooks/usePosition"; // Import the custom hook
 
 // Planets component
 const Planets = ({ count = 2 }) => {
   const { addTrailPoint } = useTrails();
 
-  const planetsRef = useRef<(RigidBody | null)[] | null>(null);
+  const planetsRef = useRef<(typeof RigidBody | null)[] | null>(null);
   const [planetCount, setPlanetCount] = useState(count);
 
   // Define orbital parameters for each planet
   const orbitalParams = useMemo(() => {
     const params = [];
     for (let i = 0; i < count; i++) {
-      const a = 50 + Math.random() * 20; // Semi-major axis
+      const a = 50 + Math.random() * 50; // Semi-major axis
       const e = Math.random() * 0.5; // Eccentricity
       const inclination = THREE.MathUtils.degToRad(Math.random() * 180); // Inclination in radians
       const omega = THREE.MathUtils.degToRad(Math.random() * 360); // Argument of periapsis in radians
@@ -47,16 +49,8 @@ const Planets = ({ count = 2 }) => {
       planets.push({
         count: 2,
         key,
-        orbit: {
-          a: 50 + Math.random() * 20,
-          e: Math.random() * 0.5,
-          inclination: THREE.MathUtils.degToRad(Math.random() * 180),
-          omega: THREE.MathUtils.degToRad(Math.random() * 360),
-          raan: THREE.MathUtils.degToRad(Math.random() * 360),
-          q: 10 + Math.random() * 20,
-        },
+        orbit: orbitalParams[i],
         scale,
-        // position: new THREE.Vector3(position.x, position.y, position.z),
         position: new THREE.Vector3(position.x, position.y, position.z),
         userData: { type: "Planet", key },
       });
@@ -64,9 +58,12 @@ const Planets = ({ count = 2 }) => {
     return planets;
   }, [count]);
 
+  // Initialize position state for each planet
+  const [positions, updatePosition] = usePosition(new Vector3());
+
   // Update the planet count
   useEffect(() => {
-    setPlanetCount(planetsRef.current.length);
+    if (planetsRef.current) setPlanetCount(planetsRef.current.length);
   }, [planetsRef.current]);
 
   // Animate planets in elliptical orbits
@@ -76,6 +73,9 @@ const Planets = ({ count = 2 }) => {
       const { a, e, inclination, omega, raan, q } = orbitalParams[index];
       const position = propagate(t, a, e, inclination, omega, raan);
       planet.setTranslation(position);
+      planet.isMoving(true);
+
+      updatePosition(new Vector3(position.x, position.y, position.z));
 
       addTrailPoint(
         planet.userData.key,
@@ -85,13 +85,9 @@ const Planets = ({ count = 2 }) => {
   });
 
   return (
-    <InstancedRigidBodies
-      ref={planetsRef}
-      instances={planetData}
-      // colliders=""
-    >
+    <InstancedRigidBodies ref={planetsRef} instances={planetData}>
       {planetData.map((planet, index) => (
-        <Asteroid  {...planet} />
+        <Earth {...planet} position={positions} />
       ))}
     </InstancedRigidBodies>
   );
