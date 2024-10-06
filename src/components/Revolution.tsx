@@ -16,12 +16,23 @@ import { RigidBody } from "@react-three/rapier";
 import Earth from "./Earth";
 import usePosition from "../hooks/usePosition"; // Import the custom hook
 
+// Define the props for the Revolution component
+interface RevolutionProps {
+  Component: React.ComponentType<any>;
+  componentProps?: any;
+}
+
 // Planets component
-const Revolution = () => {
-  const count = 1
+const Revolution: React.FC<RevolutionProps> = ({
+  Component,
+  componentProps,
+}) => {
+  const count = 1;
   const { addTrailPoint } = useTrails();
 
-  const planetsRef = useRef<(typeof InstancedRigidBodies | null)[] | null>(null);
+  const planetsRef = useRef<(typeof InstancedRigidBodies | null)[] | null>(
+    null
+  );
   const [planetCount, setPlanetCount] = useState(count);
 
   // Define orbital parameters for each planet
@@ -77,7 +88,7 @@ const Revolution = () => {
       // planet.isMoving(true);
 
       updatePosition(new Vector3(position.x, position.y, position.z));
-      console.log("planet", planet)
+      console.log("planet", planet);
       addTrailPoint(
         planet?.userData.key,
         new Vector3(position.x, position.y, position.z)
@@ -88,7 +99,12 @@ const Revolution = () => {
   return (
     <InstancedRigidBodies ref={planetsRef} instances={planetData}>
       {planetData.map((planet, index) => (
-        <Earth {...planet} position={positions} />
+        <Component
+          key={planet.key}
+          {...planet}
+          position={positions}
+          {...componentProps}
+        />
       ))}
     </InstancedRigidBodies>
   );
