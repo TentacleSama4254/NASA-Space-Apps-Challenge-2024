@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { SUN_RADIUS, SUN_MASS, SPAWN_RADIUS, GRAVITATIONAL_CONSTANT } from '../config/constants'
+import { SUN_RADIUS, SUN_MASS, SPAWN_RADIUS, GRAVITATIONAL_CONSTANT, SUN_OFFSET } from '../config/constants'
 import * as THREE from 'three';
 
 // Get random position either within the spawn radius or on the outside edge
@@ -116,7 +116,7 @@ export const propagate = (
   const s_z = 0;
 
   // Apply rotations (pitch, yaw, roll)
-  const point = new THREE.Vector3(s_x, s_y, s_z);
+  const point = new THREE.Vector3(s_x, s_y, s_z).add(SUN_OFFSET);
   point.applyAxisAngle(new THREE.Vector3(0, 1, 0), inclination); // Pitch
   point.applyAxisAngle(new THREE.Vector3(0, 0, 1), omega); // Yaw
   point.applyAxisAngle(new THREE.Vector3(1, 0, 0), raan); // Roll
