@@ -90,7 +90,7 @@ const Revolution: React.FC<RevolutionProps> = ({
       // planet.isMoving(true);
 
       updatePosition(new Vector3(position.x, position.y, position.z));
-      console.log("planet", planet);
+      // console.log("planet", planet);
       addTrailPoint(
         planet?.userData.key,
         new Vector3(position.x, position.y, position.z)

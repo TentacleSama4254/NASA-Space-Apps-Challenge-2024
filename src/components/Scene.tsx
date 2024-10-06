@@ -15,6 +15,7 @@ import Moon from "./Moon";
 import PlanetProps from "./Solar Bodies";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
+import Planet from "./p";
 
 // Scene component
 const Scene = () => {
@@ -24,6 +25,7 @@ const Scene = () => {
   return (
     <CameraProvider>
       <Earth position={new THREE.Vector3(0, 0, 0)} />
+      <Planet />
       {/* <Moon /> */}
       <SolarObj
         name="Mercury"
@@ -37,7 +39,7 @@ const Scene = () => {
           raan: 0,
           q: 10,
         }}
-        texture_path={"/textures/8k_mercury.jpg"}
+        texture_path={"/textures/8k_mars.jpg"}
       />
       {/* <PlanetProps
         name="Mercury"
@@ -63,10 +65,9 @@ const Scene = () => {
       {/* <Test /> */}
       <TrailProvider>
         <Revolution Component={Moon} />
-        <Revolution Component={Moon} />
         {/* <Revolution Component={Revolution} position={}/> */}
       </TrailProvider>
-      <Stars depth={100000} factor={696} saturation={124} />
+      <Stars depth={150000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
       {/* <Stars depth={100000} factor={696} saturation={124} /> */}
     </CameraProvider>
