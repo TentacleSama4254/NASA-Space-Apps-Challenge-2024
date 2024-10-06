@@ -52,7 +52,7 @@ const Asteroid: React.FC<AsteroidData> = ({
       <sphereGeometry args={[2, 32, 32]}>
         <instancedBufferAttribute
           attach="attributes-color"
-          args={[instanceColors, 3]}
+          args={[instanceColors, 3, true]}
         />
       </sphereGeometry>
       <meshStandardMaterial vertexColors map={texture} />

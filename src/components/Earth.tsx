@@ -48,44 +48,42 @@ const Earth = () => {
     lightsRef.current? (lightsRef.current as any).rotation.y = elapsedTime/6: console.log("lightsRef undefined");
   } )
 
-  return ( 
-    
-    <RigidBody
-      
-      colliders="ball"
+  return (
+    <instancedMesh
+      // colliders="ball"
       userData={{ type: "Earth" }}
       type="kinematicPosition"
       // onClick={handleFocus}
-      >
-       <ambientLight intensity={0.03}/>
-       <mesh ref = {cloudRef} >
-       <sphereGeometry args={[10, 132, 132]} />
-       <meshPhongMaterial map={cloudsMap}
-        opacity = {1}
-        depthWrite = {true}
-        transparent = {true} 
-        blending={2}
-        // side = {THREE.DoubleSide}
-        />
-       </mesh>
-
-       <mesh ref = {lightsRef} >
-       <sphereGeometry args={[10, 132, 132]} />
-       <meshPhongMaterial map={lightsMap}
-        opacity = {1}
-        depthWrite = {true}
-        transparent = {true} 
-        blending={2}
-        />
-       </mesh>
-      
-\       <mesh ref = {earthRef}>
+    >
+      <ambientLight intensity={0.03} />
+      <mesh ref={cloudRef}>
         <sphereGeometry args={[10, 132, 132]} />
-        <meshPhongMaterial specularMap={specularMap}/>
-        <meshStandardMaterial map={colourMap} normalMap={normalMap}/>
+        <meshPhongMaterial
+          map={cloudsMap}
+          opacity={1}
+          depthWrite={true}
+          transparent={true}
+          blending={2}
+          // side = {THREE.DoubleSide}
+        />
       </mesh>
-
-    </RigidBody>
+      <mesh ref={lightsRef}>
+        <sphereGeometry args={[10, 132, 132]} />
+        <meshPhongMaterial
+          map={lightsMap}
+          opacity={1}
+          depthWrite={true}
+          transparent={true}
+          blending={2}
+        />
+      </mesh>
+      \{" "}
+      <mesh ref={earthRef}>
+        <sphereGeometry args={[10, 132, 132]} />
+        <meshPhongMaterial specularMap={specularMap} />
+        <meshStandardMaterial map={colourMap} normalMap={normalMap} />
+      </mesh>
+    </instancedMesh>
   );
 };
 

@@ -13,19 +13,20 @@ import Asteroid from "./Asteroid";
 import { KeplerSolve, propagate } from "../utils/planetCalculations";
 import { AsteroidData } from "../types/Asteroid";
 import { RigidBody } from "@react-three/rapier";
+import Earth from "./Earth";
 
 // Planets component
 const Planets = ({ count = 2 }) => {
   const { addTrailPoint } = useTrails();
 
-  const planetsRef = useRef<(RigidBody | null)[] | null>(null);
+  const planetsRef = useRef<(typeof RigidBody | null)[] | null>(null);
   const [planetCount, setPlanetCount] = useState(count);
 
   // Define orbital parameters for each planet
   const orbitalParams = useMemo(() => {
     const params = [];
     for (let i = 0; i < count; i++) {
-      const a = 50 + Math.random() * 20; // Semi-major axis
+      const a = 50 + Math.random() * 50; // Semi-major axis
       const e = Math.random() * 0.5; // Eccentricity
       const inclination = THREE.MathUtils.degToRad(Math.random() * 180); // Inclination in radians
       const omega = THREE.MathUtils.degToRad(Math.random() * 360); // Argument of periapsis in radians
@@ -48,12 +49,12 @@ const Planets = ({ count = 2 }) => {
         count: 2,
         key,
         orbit: {
-          a: 50 + Math.random() * 20,
-          e: Math.random() * 0.5,
-          inclination: THREE.MathUtils.degToRad(Math.random() * 180),
-          omega: THREE.MathUtils.degToRad(Math.random() * 360),
-          raan: THREE.MathUtils.degToRad(Math.random() * 360),
-          q: 10 + Math.random() * 20,
+          a: 50,
+          e: 2,
+          inclination: THREE.MathUtils.degToRad(180),
+          omega: THREE.MathUtils.degToRad(360),
+          raan: THREE.MathUtils.degToRad(360),
+          q: 20,
         },
         scale,
         // position: new THREE.Vector3(position.x, position.y, position.z),
@@ -66,12 +67,15 @@ const Planets = ({ count = 2 }) => {
 
   // Update the planet count
   useEffect(() => {
-    setPlanetCount(planetsRef.current.length);
+    if (planetsRef.current) setPlanetCount(planetsRef.current.length);
   }, [planetsRef.current]);
 
   // Animate planets in elliptical orbits
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
+    // if (t < 5) return;
+    console.log(t);
+
     planetsRef.current?.forEach((planet, index) => {
       const { a, e, inclination, omega, raan, q } = orbitalParams[index];
       const position = propagate(t, a, e, inclination, omega, raan);
@@ -91,7 +95,8 @@ const Planets = ({ count = 2 }) => {
       // colliders=""
     >
       {planetData.map((planet, index) => (
-        <Asteroid  {...planet} />
+        <Asteroid {...planet} />
+        // <Earth {...planet} />
       ))}
     </InstancedRigidBodies>
   );
