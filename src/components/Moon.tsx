@@ -33,10 +33,10 @@ const Moon = () => {
 
   const moonRef = useRef() as any;
 
-  // useFrame(({clock}) => {
-  //   const elapsedTime = clock.getElapsedTime();
-  //   earthRef.current? (earthRef.current as any).rotation.y = elapsedTime/6: console.log("earthRef undefined");
-  // } )
+  useFrame(({clock}) =>  {
+    const elapsedTime = clock.getElapsedTime();
+    moonRef.current? (moonRef.current as any).rotation.y = (elapsedTime/6)*0.037: console.log("moonRef undefined");
+  } )
 
   return ( 
     
@@ -45,7 +45,7 @@ const Moon = () => {
       colliders="ball"
       userData={{ type: "Moon" }}
       type="kinematicPosition"
-      position={[50,50,50]}
+      position={[50,0,0]}
       // onClick={handleFocus}
       >
        <ambientLight intensity={0.03}/>

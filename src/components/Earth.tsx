@@ -37,7 +37,7 @@ interface EarthProps {
   position: THREE.Vector3;
 }
 
-const Earth: React.FC<EarthProps> = ({ position }) => {
+const Earth: React.FC<EarthProps> = ({ position = new THREE.Vector3(0,0,0)}) => {
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
