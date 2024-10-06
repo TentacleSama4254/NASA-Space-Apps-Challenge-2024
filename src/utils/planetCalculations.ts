@@ -100,7 +100,8 @@ export const propagate = (
   e: number,
   inclination: number,
   omega: number,
-  raan: number
+  raan: number,
+  heliocentric = true
 ): THREE.Vector3 => {
   const T = 120; // seconds
   const n = (2 * Math.PI) / T;
@@ -116,7 +117,7 @@ export const propagate = (
   const s_z = 0;
 
   // Apply rotations (pitch, yaw, roll)
-  const point = new THREE.Vector3(s_x, s_y, s_z).add(SUN_OFFSET);
+  const point = heliocentric? new THREE.Vector3(s_x, s_y, s_z).add(SUN_OFFSET): new THREE.Vector3(s_x, s_y, s_z);
   point.applyAxisAngle(new THREE.Vector3(0, 1, 0), inclination); // Pitch
   point.applyAxisAngle(new THREE.Vector3(0, 0, 1), omega); // Yaw
   point.applyAxisAngle(new THREE.Vector3(1, 0, 0), raan); // Roll

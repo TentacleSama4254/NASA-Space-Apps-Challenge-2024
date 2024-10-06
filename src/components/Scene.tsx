@@ -26,7 +26,7 @@ const Scene = () => {
     <CameraProvider>
       <Earth position={new THREE.Vector3(0, 0, 0)} />
       {/* <Moon /> */}
-      <SolarObj
+      {/* <SolarObj
         name="Mercury"
         position={[40, 0, 0]}
         scale={0.5}
@@ -39,20 +39,6 @@ const Scene = () => {
           q: 10,
         }}
         texture_path={"/textures/8k_mars.jpg"}
-      />
-      {/* <PlanetProps
-        name="Mercury"
-        position={[40, 0, 0]}
-        scale={50}
-        orbit={{
-          a: 25,
-          e: 1,
-          inclination: 0,
-          omega: 0,
-          raan: 0,
-          q: 10,
-        }}
-        texture_path={"/textures/8k_mercury.jpg"}
       /> */}
 
       {/* <ExplosionProvider> */}
@@ -63,7 +49,7 @@ const Scene = () => {
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>
-        <Revolution Component={Moon} />
+        <Revolution Component={Moon} heliocentric={false} />
         {/* <Revolution Component={Revolution} position={}/> */}
       </TrailProvider>
       <Stars depth={150000} factor={696} saturation={124} />
