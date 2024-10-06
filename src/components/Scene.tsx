@@ -10,6 +10,7 @@ import Sun from "./Sun";
 import Test from "./test";
 // import Stars from "./Stars";
 import Planets from "./Planets";
+import Moon from "./Moon";
 
 // Scene component
 const Scene = () => {
@@ -19,15 +20,16 @@ const Scene = () => {
   return (
     <CameraProvider>
       <Earth />
+      <Moon />
       {/* <ExplosionProvider> */}
       <Sun />
       {/* <Earth /> */}
       {/* <Earth2 /> */}
       {/* <Globe  /> */}
       {/* <Test /> */}
-      <TrailProvider>
+      {/* <TrailProvider>
         <Planets />
-      </TrailProvider>
+      </TrailProvider> */}
       <Stars depth={100000} factor={696} saturation={124}/>
       {/* </ExplosionProvider> */}
       <Stars depth={100000} factor={696} saturation={124} />

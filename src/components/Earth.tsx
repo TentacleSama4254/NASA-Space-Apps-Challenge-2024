@@ -16,6 +16,8 @@ import { TextureLoader } from "three";
 
 import * as THREE from 'three'
 
+export const earthSize = 10;
+
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -59,7 +61,7 @@ const Earth = () => {
       >
        <ambientLight intensity={0.03}/>
        <mesh ref = {cloudRef} >
-       <sphereGeometry args={[10, 132, 132]} />
+       <sphereGeometry args={[earthSize, 132, 132]} />
        <meshPhongMaterial map={cloudsMap}
         opacity = {1}
         depthWrite = {true}
@@ -70,7 +72,7 @@ const Earth = () => {
        </mesh>
 
        <mesh ref = {lightsRef} >
-       <sphereGeometry args={[10, 132, 132]} />
+       <sphereGeometry args={[earthSize, 132, 132]} />
        <meshPhongMaterial map={lightsMap}
         opacity = {1}
         depthWrite = {true}
@@ -80,7 +82,7 @@ const Earth = () => {
        </mesh>
       
 \       <mesh ref = {earthRef}>
-        <sphereGeometry args={[10, 132, 132]} />
+        <sphereGeometry args={[earthSize, 132, 132]} />
         <meshPhongMaterial specularMap={specularMap}/>
         <meshStandardMaterial map={colourMap} normalMap={normalMap}/>
       </mesh>
