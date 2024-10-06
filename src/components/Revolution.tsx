@@ -17,10 +17,11 @@ import Earth from "./Earth";
 import usePosition from "../hooks/usePosition"; // Import the custom hook
 
 // Planets component
-const Planets = ({ count = 2 }) => {
+const Revolution = () => {
+  const count = 1
   const { addTrailPoint } = useTrails();
 
-  const planetsRef = useRef<(typeof RigidBody | null)[] | null>(null);
+  const planetsRef = useRef<(typeof InstancedRigidBodies | null)[] | null>(null);
   const [planetCount, setPlanetCount] = useState(count);
 
   // Define orbital parameters for each planet
@@ -72,13 +73,13 @@ const Planets = ({ count = 2 }) => {
     planetsRef.current?.forEach((planet, index) => {
       const { a, e, inclination, omega, raan, q } = orbitalParams[index];
       const position = propagate(t, a, e, inclination, omega, raan);
-      planet.setTranslation(position);
-      planet.isMoving(true);
+      // planet.setTranslation(position);
+      // planet.isMoving(true);
 
       updatePosition(new Vector3(position.x, position.y, position.z));
-
+      console.log("planet", planet)
       addTrailPoint(
-        planet.userData.key,
+        planet?.userData.key,
         new Vector3(position.x, position.y, position.z)
       );
     });
@@ -93,4 +94,4 @@ const Planets = ({ count = 2 }) => {
   );
 };
 
-export default Planets;
+export default Revolution;

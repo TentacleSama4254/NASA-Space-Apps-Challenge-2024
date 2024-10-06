@@ -9,7 +9,7 @@ import Earth from "./Earth";
 import Sun from "./Sun";
 import Test from "./test";
 // import Stars from "./Stars";
-import Planets from "./Planets";
+import Revolution from "./Revolution";
 import Moon from "./Moon";
 
 // Scene component
@@ -27,10 +27,10 @@ const Scene = () => {
       {/* <Earth2 /> */}
       {/* <Globe  /> */}
       {/* <Test /> */}
-      {/* <TrailProvider>
-        <Planets />
-      </TrailProvider> */}
-      <Stars depth={100000} factor={696} saturation={124}/>
+      <TrailProvider>
+        <Revolution />
+      </TrailProvider>
+      <Stars depth={100000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
       {/* <Stars depth={100000} factor={696} saturation={124} /> */}
     </CameraProvider>
