@@ -16,7 +16,12 @@ const STL_Paths = [
   // "asteroids/asteroid_5.stl",
 ];
 
-const Asteroid = () => {
+const Asteroid: React.FC<PlanetData> = ({
+  name,
+  position,
+  scale,
+  texture_path,
+}) => {
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
 
@@ -49,7 +54,7 @@ const Asteroid = () => {
       position={[50, 0, 0]}
       // onClick={handleFocus}
     >
-      <ambientLight intensity={1} />
+      <ambientLight intensity={0.001} />
       <mesh ref={moonRef} geometry={geometry}>
         <meshPhongMaterial
           map={moonMap}

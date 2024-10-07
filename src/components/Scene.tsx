@@ -16,6 +16,7 @@ import Moon from "./Moon";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
 import Planet from "./p";
+import AsteroidField from "./AsteroidField";
 
 // Scene component
 const Scene = () => {
@@ -45,7 +46,8 @@ const Scene = () => {
       <Sun />
       {/* <Earth /> */}
       {/* <Earth2 /> */}
-      <Asteroid/>
+      {/* <Asteroid /> */}
+      <AsteroidField />
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>

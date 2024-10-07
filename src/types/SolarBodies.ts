@@ -5,7 +5,7 @@ export interface PlanetData {
   name: string;
   position: Vector3;
   scale: number;
-  orbit: OrbitalParams;
+  orbit?: OrbitalParams;
   texture_path: string;
       
 }
