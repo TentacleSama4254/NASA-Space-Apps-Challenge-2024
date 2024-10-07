@@ -3,7 +3,6 @@
 import { Stars } from "@react-three/drei";
 import * as THREE from 'three';
 import { CameraProvider } from "../context/Camera";
-import { ExplosionProvider } from "../context/Explosions";
 import { TrailProvider } from "../context/Trails";
 import Earth from "./Earth";
 

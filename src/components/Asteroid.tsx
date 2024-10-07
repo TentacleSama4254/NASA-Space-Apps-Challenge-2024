@@ -51,7 +51,7 @@ const Asteroid: React.FC<PlanetData> = ({
       colliders="ball"
       userData={{ type: "Asteroid" }}
       type="kinematicPosition"
-      position={[50, 0, 0]}
+      position={position}
       // onClick={handleFocus}
     >
       {/* <ambientLight intensity={0.001} /> */}
@@ -59,7 +59,7 @@ const Asteroid: React.FC<PlanetData> = ({
         <meshPhongMaterial
           map={moonMap}
           depthWrite={true}
-          
+
           // blending={2}
         />
       </mesh>

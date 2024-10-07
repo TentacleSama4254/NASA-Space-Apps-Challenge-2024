@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { createContext, useState, useContext, useCallback } from "react";
 import { Line } from "@react-three/drei";
+import * as THREE from "three";
 
 const TrailContext = createContext({
   addTrailPoint: (key: string, position: any) => {},
@@ -16,7 +17,7 @@ interface TrailProviderProps {
 }
 
 export const TrailProvider = ({ children }: TrailProviderProps) => {
-  const [trails, setTrails] = useState({});
+  const [trails, setTrails] = useState<{ [key: string]: (number | THREE.Vector3 | [number, number, number] | [number, number])[] }>({});
 
 interface Trails {
     [key: string]: any[];
@@ -49,7 +50,7 @@ const addTrailPoint = useCallback((key: string, position: Position) => {
   return (
     <TrailContext.Provider value={{ addTrailPoint, clearTrail }}>
       {children}
-      {Object.entries(trails).map(([key, positions]) => (
+      {Object.entries(trails).map(([key, positions]: [string, (number | THREE.Vector3 | [number, number, number] | [number, number])[]]) => (
         <Line key={key} points={positions} color="rgba(30,30,30)" />
       ))}
     </TrailContext.Provider>
