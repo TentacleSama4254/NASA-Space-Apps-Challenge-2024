@@ -22,7 +22,9 @@ const AsteroidField = () => {
         // console.log(asteroid)
         <Asteroid
           key={index}
-          name={asteroid.name}
+              name={asteroid.name}
+              scale={asteroid.scale}
+              texture_path=""
         //   diameter={asteroid.diameter}
           position={[asteroid.a, asteroid.e, asteroid.i]} // Example mapping
           
