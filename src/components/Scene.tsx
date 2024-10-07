@@ -15,7 +15,6 @@ import Moon from "./Moon";
 // import PlanetProps from "./Solar Bodies";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
-import Planet from "./p";
 import AsteroidField from "./AsteroidField";
 
 // Scene component
