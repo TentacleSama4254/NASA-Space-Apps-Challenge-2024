@@ -6,7 +6,7 @@ import { Physics } from "@react-three/rapier";
 
 import Scene from "./Scene";
 import Sun from "./Sun";
-import Test from "./test";
+// import Test from "./test";
 // import System from "./System";
 
 const App = () => (

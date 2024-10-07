@@ -24,7 +24,8 @@ const AsteroidField = () => {
       {asteroids.slice(0, 20).map(
         (asteroid, index) => (
           // console.log(asteroid)
-          <Revolution
+              <Revolution
+                  heliocentric={false}
             Component={Asteroid}
             key={`asteroid_${index}`}
             componentProps={{

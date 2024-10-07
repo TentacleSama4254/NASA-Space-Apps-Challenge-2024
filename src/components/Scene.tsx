@@ -8,7 +8,7 @@ import { TrailProvider } from "../context/Trails";
 import Earth from "./Earth";
 
 import Sun from "./Sun";
-import Test from "./test";
+// import Test from "./test";
 // import Stars from "./Stars";
 import Revolution from "./Revolution";
 import Moon from "./Moon";
