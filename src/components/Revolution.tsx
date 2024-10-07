@@ -101,14 +101,14 @@ const Revolution: React.FC<RevolutionProps> = ({
       updatePosition(new Vector3(position.x, position.y, position.z));
       // console.log("planet", planet);
       addTrailPoint(
-        planet?.userData.key,
+        (planet as any).userData.key,
         new Vector3(position.x, position.y, position.z)
       );
     });
   });
 
   return (
-    <InstancedRigidBodies ref={planetsRef} instances={planetData}>
+    <InstancedRigidBodies ref={planetsRef as any} instances={planetData}>
       {planetData.map((planet, index) => (
         <Component
         {...planet}
