@@ -1,6 +1,6 @@
 # ASTEREORRY - Near Earth Object Orrery 🌍☄️
 
-### [Visit ASTEREORRY!! 🌎](https://nasa-space-apps-challenge-2024-abwm-bpgcdkn5l.vercel.app/)
+### [Visit ASTEREORRY!! 🌎](https://nasa-space-apps-challenge-2024-two.vercel.app/)
 
 ---
 
