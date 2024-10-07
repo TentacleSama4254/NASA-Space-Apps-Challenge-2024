@@ -9,10 +9,11 @@ import { earthSize } from "./Earth";
 import { PlanetData } from "../types/SolarBodies";
 
 const STL_Paths = [
-  "assets/asteroids/asteroid_1.stl",
-  "assets/asteroids/asteroid_2.stl",
-  "assets/asteroids/asteroid_3.stl",
-  "assets/asteroids/asteroid_4.stl",
+  // "/asteroids/asteroid_1.stl",
+  "asteroids/asteroid_2.stl",
+  "asteroids/asteroid_3.stl",
+  // "asteroids/asteroid_4.stl",
+  // "asteroids/asteroid_5.stl",
 ];
 
 const Asteroid = () => {
@@ -29,7 +30,7 @@ const Asteroid = () => {
   const geometry = useLoader(STLLoader, randomSTLPath);
 
   // Load the texture
-  const moonMap = useLoader(TextureLoader, texture_path);
+  const moonMap = useLoader(TextureLoader, "/textures/8k_mercury.jpg");
 
   const moonRef = useRef() as any;
 
@@ -43,14 +44,18 @@ const Asteroid = () => {
   return (
     <RigidBody
       colliders="ball"
-      userData={{ type: "Moon" }}
+      userData={{ type: "Asteroid" }}
       type="kinematicPosition"
       position={[50, 0, 0]}
       // onClick={handleFocus}
     >
-      <ambientLight intensity={0.03} />
+      <ambientLight intensity={1} />
       <mesh ref={moonRef} geometry={geometry}>
-        <meshPhongMaterial map={moonMap} />
+        <meshPhongMaterial
+          map={moonMap}
+          depthWrite={true}
+          // blending={2}
+        />
       </mesh>
     </RigidBody>
   );

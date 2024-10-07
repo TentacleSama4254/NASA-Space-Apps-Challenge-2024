@@ -6,7 +6,6 @@ import noise from "./../shaders/noise.glsl";
 import { SUN_RADIUS } from "../config/constants";
 import { useCamera } from "../context/Camera";
 
-import MoonMap from "./../assets/textures/8k_moon.jpg";
 import { TextureLoader } from "three";
 
 import * as THREE from "three";
