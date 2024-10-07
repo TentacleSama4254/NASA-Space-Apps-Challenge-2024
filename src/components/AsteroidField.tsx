@@ -21,7 +21,7 @@ const AsteroidField = () => {
 
   return (
     <>
-      {asteroids.slice(0, 20).map(
+      {asteroids.slice(0, 200).map(
         (asteroid, index) => (
           // console.log(asteroid)
               <Revolution

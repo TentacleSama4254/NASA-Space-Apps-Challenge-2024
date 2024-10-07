@@ -54,11 +54,12 @@ const Asteroid: React.FC<PlanetData> = ({
       position={[50, 0, 0]}
       // onClick={handleFocus}
     >
-      <ambientLight intensity={0.001} />
+      {/* <ambientLight intensity={0.001} /> */}
       <mesh ref={moonRef} geometry={geometry}>
         <meshPhongMaterial
           map={moonMap}
           depthWrite={true}
+          
           // blending={2}
         />
       </mesh>
