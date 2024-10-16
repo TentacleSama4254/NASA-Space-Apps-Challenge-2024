@@ -27,7 +27,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       let target;
 
         target = focusedObject.object.position.clone();
-        console.log("TARGET : ",target, focusedObject.object);
+        // console.log("TARGET : ",target, focusedObject.object);
      
       const smoothness = 0.05;
       cameraTarget.current.lerp(target, smoothness);
@@ -40,9 +40,8 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
 
   // Handle focus
   const handleFocus = (event: { object: any; instanceId?: number }) => {
-    console.log("handleFocus");
     const object = event.object;
-    const instanceId = event.instanceId;
+    const instanceId = event.instanceId??88;
 
     console.log("handleFocus", focusedObject, instanceId);
 

@@ -61,10 +61,7 @@ const Earth: React.FC<EarthProps> = ({
       <instancedMesh
         position={position}
         userData={{ type: "Earth" }}
-        onClick={(event) => {
-          const instanceId = event.instanceId;
-          handleFocus({ object: event.object, instanceId });
-        }}
+        onClick={handleFocus}
         castShadow
         receiveShadow
         ref={mesh}
