@@ -117,8 +117,8 @@ const Sun: React.FC<SunProps> = ({
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(
-            child as React.ReactElement<{ planetPosition: THREE.Vector3 }>,
-            { planetPosition: position }
+            child as React.ReactElement,
+            { centrePosition: position }
           );
           // return React.cloneElement(child, { planetPosition: position });
         }
