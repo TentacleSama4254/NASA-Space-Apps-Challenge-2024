@@ -1,45 +1,28 @@
-import { useRef } from "react";
-import { useFrame, extend, useLoader } from "@react-three/fiber";
-import { shaderMaterial } from "@react-three/drei";
-import { RigidBody } from "@react-three/rapier";
-import noise from "./../shaders/noise.glsl";
-import { SUN_RADIUS } from "../config/constants";
+import React, { useRef } from "react";
+import { useFrame, useLoader } from "@react-three/fiber";
 import { useCamera } from "../context/Camera";
+import { TextureLoader } from "three";
+import * as THREE from "three";
 
 import EarthDayMap from "../assets/textures/8k_earth_daymap.jpg";
 import EarthNightMap from "../assets/textures/8k_earth_nightmap.jpg";
 import EarthCloudsMap from "../assets/textures/8k_earth_clouds.jpg";
 import EarthNormalMap from "../assets/textures/8k_earth_normal_map.jpg";
 import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg";
-import { TextureLoader } from "three";
-
-
-import * as THREE from 'three'
 
 export const earthSize = 10;
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      customShaderMaterial: React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      > & {
-        ref?: React.Ref<any>;
-        emissiveIntensity?: number;
-        time?: number;
-      };
-    }
-  }
-}
-
 interface EarthProps {
   position: THREE.Vector3;
+  children?: React.ReactNode;
 }
 
-const Earth: React.FC<EarthProps> = ({ position = new THREE.Vector3(0,0,0)}) => {
+const Earth: React.FC<EarthProps> = ({
+  position = new THREE.Vector3(0, 0, 0),
+  children,
+}) => {
   const cameraContext = useCamera();
-  const handleFocus = cameraContext ? cameraContext.handleFocus : () => { };
+  const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const mesh = useRef<THREE.InstancedMesh>(null);
 
   const [colourMap, normalMap, specularMap, cloudsMap, lightsMap] = useLoader(
@@ -74,45 +57,54 @@ const Earth: React.FC<EarthProps> = ({ position = new THREE.Vector3(0,0,0)}) => 
   });
 
   return (
-    <instancedMesh
-      position={position}
-      userData={{ type: "Earth" }}
-      onClick={((a) => {
-        a.instanceId = a.object.id;
-        handleFocus(a);
+    <group>
+      <instancedMesh
+        position={position}
+        userData={{ type: "Earth" }}
+        onClick={(event) => {
+          const instanceId = event.instanceId;
+          handleFocus({ object: event.object, instanceId });
+        }}
+        castShadow
+        receiveShadow
+        ref={mesh}
+      >
+        <ambientLight intensity={0.03} />
+        <mesh ref={cloudRef}>
+          <sphereGeometry args={[earthSize, 132, 132]} />
+          <meshPhongMaterial
+            map={cloudsMap}
+            opacity={1}
+            depthWrite={true}
+            transparent={true}
+            blending={2}
+          />
+        </mesh>
+        <mesh ref={lightsRef}>
+          <sphereGeometry args={[earthSize, 132, 132]} />
+          <meshPhongMaterial
+            map={lightsMap}
+            opacity={1}
+            depthWrite={true}
+            transparent={true}
+            blending={2}
+          />
+        </mesh>
+        <mesh ref={earthRef}>
+          <sphereGeometry args={[earthSize, 132, 132]} />
+          <meshPhongMaterial specularMap={specularMap} />
+          <meshStandardMaterial map={colourMap} normalMap={normalMap} />
+        </mesh>
+      </instancedMesh>
+
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child as React.ReactElement<{ planetPosition: THREE.Vector3 }>, { planetPosition: position });
+          // return React.cloneElement(child, { planetPosition: position });
+        }
+        return child;
       })}
-      // onClick={handleFocus}
-      castShadow
-      receiveShadow
-      ref={mesh}
-    >
-      <ambientLight intensity={0.03} />
-      <mesh ref={cloudRef}>
-        <sphereGeometry args={[earthSize, 132, 132]} />
-        <meshPhongMaterial
-          map={cloudsMap}
-          opacity={1}
-          depthWrite={true}
-          transparent={true}
-          blending={2}
-        />
-      </mesh>
-      <mesh ref={lightsRef}>
-        <sphereGeometry args={[earthSize, 132, 132]} />
-        <meshPhongMaterial
-          map={lightsMap}
-          opacity={1}
-          depthWrite={true}
-          transparent={true}
-          blending={2}
-        />
-      </mesh>
-      <mesh ref={earthRef}>
-        <sphereGeometry args={[earthSize, 132, 132]} />
-        <meshPhongMaterial specularMap={specularMap} />
-        <meshStandardMaterial map={colourMap} normalMap={normalMap} />
-      </mesh>
-    </instancedMesh>
+    </group>
   );
 };
 

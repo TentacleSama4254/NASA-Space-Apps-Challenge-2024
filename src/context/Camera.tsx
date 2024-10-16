@@ -26,17 +26,9 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
     if (focusedObject) {
       let target;
 
-      if (focusedObject.instanceId !== undefined) {
-        const instanceMatrix = new Matrix4();
-        focusedObject.object.getMatrixAt(
-          focusedObject.instanceId,
-          instanceMatrix
-        );
-        target = new Vector3().setFromMatrixPosition(instanceMatrix);
-      } else {
         target = focusedObject.object.position.clone();
-      }
-
+        console.log("TARGET : ",target, focusedObject.object);
+     
       const smoothness = 0.05;
       cameraTarget.current.lerp(target, smoothness);
       camera.lookAt(cameraTarget.current);
@@ -52,12 +44,10 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
     const object = event.object;
     const instanceId = event.instanceId;
 
-    console.log("handleFocus", event, instanceId);
+    console.log("handleFocus", focusedObject, instanceId);
 
     if (instanceId !== undefined) {
       setFocusedObject({ object, instanceId });
-    }else if (object) {
-      setFocusedObject({ object });
     } else {
     <CameraContext.Provider value={{ focusedObject, handleFocus } as CameraContextType}></CameraContext.Provider>
     }

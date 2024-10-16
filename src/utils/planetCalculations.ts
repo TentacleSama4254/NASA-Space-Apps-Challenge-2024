@@ -103,7 +103,7 @@ export const propagate = (
   raan: number,
   heliocentric = true
 ): THREE.Vector3 => {
-  const T = 120; // seconds
+  const T = 120; // seconds AND DEPENDS ON THE ORBITAL PERIOD
   const n = (2 * Math.PI) / T;
   const tau = 0; // time of pericenter passage
 
