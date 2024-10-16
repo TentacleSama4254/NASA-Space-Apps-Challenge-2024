@@ -1,15 +1,20 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { useFrame, extend } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import noise from "./../shaders/noise.glsl";
 import { SUN_OFFSET, SUN_RADIUS } from "../config/constants";
 import { useCamera } from "../context/Camera";
+import * as THREE from "three";
+
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      customShaderMaterial: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+      customShaderMaterial: React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
         ref?: React.Ref<any>;
         emissiveIntensity?: number;
         time?: number;
@@ -18,7 +23,15 @@ declare global {
   }
 }
 
-const Sun = () => {
+interface SunProps {
+  children?: React.ReactNode;
+  position?: THREE.Vector3;
+}
+
+const Sun: React.FC<SunProps> = ({
+  children,
+  position = SUN_OFFSET,
+}) => {
   const { handleFocus } = useCamera() as any;
 
   const CustomShaderMaterial = shaderMaterial(
@@ -66,25 +79,41 @@ const Sun = () => {
   });
 
   return (
-    <RigidBody
-      colliders="ball"
-      userData={{ type: "Sun" }}
-      type="kinematicPosition"
-      position={SUN_OFFSET.toArray()}
+    <group>
+      <instancedMesh
+        // colliders="ball"
+        userData={{ type: "Sun" }}
+        type="kinematicPosition"
+        position={SUN_OFFSET.toArray()}
+        onClick={handleFocus}
+      >
+        <mesh>
+          <sphereGeometry args={[SUN_RADIUS, 32, 32]} />
+          <customShaderMaterial
+            ref={shaderRef as React.Ref<any>}
+            emissiveIntensity={5}
+            time={0}
+          />
+        </mesh>
 
-      // onClick={handleFocus}
-    >
-      <mesh>
-        <sphereGeometry args={[SUN_RADIUS, 32, 32]} />
-        <customShaderMaterial ref={shaderRef as React.Ref<any>} emissiveIntensity={5} time={0} />
-      </mesh>
-
-      <pointLight
-        position={[0, 0, 0]}
-        intensity={4}
-        color={"rgb(220, 250, 249)"} decay={0} 
-      />
-    </RigidBody>
+        <pointLight
+          position={SUN_OFFSET.toArray()}
+          intensity={4}
+          color={"rgb(220, 250, 249)"}
+          decay={0}
+        />
+      </instancedMesh>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(
+            child as React.ReactElement<{ planetPosition: THREE.Vector3 }>,
+            { planetPosition: position }
+          );
+          // return React.cloneElement(child, { planetPosition: position });
+        }
+        return child;
+      })}
+    </group>
   );
 };
 
