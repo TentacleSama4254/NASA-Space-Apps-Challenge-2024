@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFrame, extend } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
@@ -32,7 +32,9 @@ const Sun: React.FC<SunProps> = ({
   children,
   position = SUN_OFFSET,
 }) => {
-  const { handleFocus } = useCamera() as any;
+  const cameraContext = useCamera();
+  const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
+  const sunRef = useRef<THREE.InstancedMesh>(null);
 
   const CustomShaderMaterial = shaderMaterial(
     { emissiveIntensity: 1.0, time: 0 },
@@ -78,26 +80,35 @@ const Sun: React.FC<SunProps> = ({
     }
   });
 
+  useEffect(() => {
+    sunRef?.current?.position.set(position.x, position.y, position.z);
+    return () => {
+      // Any cleanup code can go here
+    };
+  }, []);
+
   return (
     <group>
       <instancedMesh
         // colliders="ball"
         userData={{ type: "Sun" }}
         type="kinematicPosition"
-        position={SUN_OFFSET.toArray()}
+        // position={SUN_OFFSET.toArray()}
+        args={[undefined, undefined, 1]}
         onClick={handleFocus}
+        ref={sunRef}
       >
         <mesh>
           <sphereGeometry args={[SUN_RADIUS, 32, 32]} />
           <customShaderMaterial
             ref={shaderRef as React.Ref<any>}
             emissiveIntensity={5}
-            time={0}
+            time={0.1}
           />
         </mesh>
 
         <pointLight
-          position={SUN_OFFSET.toArray()}
+          // position={SUN_OFFSET.toArray()}
           intensity={4}
           color={"rgb(220, 250, 249)"}
           decay={0}

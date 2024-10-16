@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import { useCamera } from "../context/Camera";
 import { TextureLoader } from "three";
@@ -56,18 +56,38 @@ const Earth: React.FC<EarthProps> = ({
       : console.log("lightsRef undefined");
   });
 
+    useEffect(() => {
+      console.log("Earth mounted");
+      earthRef.current.position.set(
+        position.x,
+        position.y,
+        position.z
+      );
+      cloudRef.current.position.set(position.x, position.y, position.z);
+      lightsRef.current.position.set(position.x, position.y, position.z);
+
+      return () => {
+        console.log("Earth unmounted");
+        // Any cleanup code can go here
+      };
+    }, []);
+
   return (
     <group>
       <instancedMesh
-        position={position}
+        // position={position}
         userData={{ type: "Earth" }}
+        type="kinematicPosition"
         onClick={handleFocus}
         castShadow
         receiveShadow
+        args={[undefined, undefined, 1]}
         ref={mesh}
       >
         <ambientLight intensity={0.03} />
-        <mesh ref={cloudRef}>
+        <mesh ref={cloudRef}
+          // position={position}
+        >
           <sphereGeometry args={[earthSize, 132, 132]} />
           <meshPhongMaterial
             map={cloudsMap}
@@ -77,7 +97,9 @@ const Earth: React.FC<EarthProps> = ({
             blending={2}
           />
         </mesh>
-        <mesh ref={lightsRef}>
+        <mesh ref={lightsRef}
+          // position={position}
+        >
           <sphereGeometry args={[earthSize, 132, 132]} />
           <meshPhongMaterial
             map={lightsMap}
@@ -96,7 +118,10 @@ const Earth: React.FC<EarthProps> = ({
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<{ planetPosition: THREE.Vector3 }>, { planetPosition: position });
+          return React.cloneElement(
+            child as React.ReactElement<{ planetPosition: THREE.Vector3 }>,
+            { planetPosition: position }
+          );
           // return React.cloneElement(child, { planetPosition: position });
         }
         return child;
