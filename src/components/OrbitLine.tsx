@@ -2,16 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { propagate } from "../utils/planetCalculations";
+import { OrbitalParams } from "../types";
 
 interface OrbitLineProps {
-  orbitalParams: {
-    a: number;
-    e: number;
-    inclination: number;
-    omega: number;
-    raan: number;
-    q: number;
-  };
+  orbitalParams: OrbitalParams;
   centrePosition: THREE.Vector3;
   earthRef: React.RefObject<THREE.Object3D>;
   isFocused: boolean; // Add isFocused prop
@@ -74,7 +68,7 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
       const material = orbitRef.current.material as THREE.LineBasicMaterial;
       const distance = camera.position.distanceTo(earthRef.current.position);
       const maxDistance = 1000; // Adjust this value as needed
-      const minOpacity = 0.1; // Minimum opacity value
+      const minOpacity = 0.05; // Minimum opacity value
       const maxOpacity = 1.0; // Maximum opacity value
 
       const opacity = THREE.MathUtils.clamp(
