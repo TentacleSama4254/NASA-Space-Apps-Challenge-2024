@@ -159,11 +159,15 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       setFocusedObject({ object, instanceId });
 
       // Calculate and store the initial offset between the camera and the target
-      const direction = camera.position
-        .clone()
-        .sub(object.position)
-        .normalize();
+      const direction = camera.position.clone().sub(object.position).normalize();
       initialOffset.current.copy(direction.multiplyScalar(predefinedDistance));
+
+      // Apply a slight rotation to the camera
+      const spherical = new Spherical().setFromVector3(initialOffset.current);
+      spherical.theta += 0.5; // Adjust this value for the desired rotation
+      spherical.phi -= 0.05; // Adjust this value for the desired rotation
+      spherical.makeSafe();
+      initialOffset.current.setFromSpherical(spherical);
     }
   };
 
