@@ -41,7 +41,7 @@ const Satellite: React.FC<SatelliteProps> = ({
 
   const defaultOrbit = {
     a: 50,
-    e: 0.5,
+    e: 0.0,
     inclination: THREE.MathUtils.degToRad(5),
     omega: THREE.MathUtils.degToRad(0),
     raan: THREE.MathUtils.degToRad(0),

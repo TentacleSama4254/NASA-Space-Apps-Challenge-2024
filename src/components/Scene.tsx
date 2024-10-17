@@ -16,6 +16,7 @@ import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
 import AsteroidField from "./AsteroidField";
 import RotataingObj from "./RefPlanets";
+import AxesHelper from "../utils/AxesHelper";
 
 // Scene component
 const Scene = () => {
@@ -24,7 +25,8 @@ const Scene = () => {
 
   return (
     <CameraProvider>
-      <Sun >
+      {/* <AxesHelper /> */}
+      <Sun>
         <Earth position={new THREE.Vector3(10, 0, 0)}>
           <Moon />
         </Earth>
