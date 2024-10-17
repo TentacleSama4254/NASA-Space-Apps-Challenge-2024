@@ -47,7 +47,7 @@ const Earth: React.FC<EarthProps> = ({
   const lightsRef = useRef() as any;
 
     const defaultOrbit = {
-      a: 4000,
+      a: 40000,
       e: 0.5,
       inclination: THREE.MathUtils.degToRad(0),
       omega: THREE.MathUtils.degToRad(0),
@@ -80,7 +80,8 @@ const Earth: React.FC<EarthProps> = ({
         orbitalParams.inclination,
         orbitalParams.omega,
         orbitalParams.raan,
-        false
+        false,
+        20000
       );
 
       const [x, y, z] = [centrePosition.x + position.x,  centrePosition.y + position.y,  centrePosition.z + position.z];

@@ -101,9 +101,10 @@ export const propagate = (
   inclination: number,
   omega: number,
   raan: number,
-  heliocentric = true
+  heliocentric = true,
+  Period?: number
 ): THREE.Vector3 => {
-  const T = 120; // seconds AND DEPENDS ON THE ORBITAL PERIOD
+  const T = Period??120; // seconds AND DEPENDS ON THE ORBITAL PERIOD
   const n = (2 * Math.PI) / T;
   const tau = 0; // time of pericenter passage
 

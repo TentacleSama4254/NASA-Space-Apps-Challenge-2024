@@ -23,6 +23,9 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const [focusedObject, setFocusedObject] = useState<{ object: any; instanceId?: number } | null>(null);
   const initialOffset = useRef(new Vector3());
   const isPanning = useRef(false);
+  const initialTouchDistance = useRef(0);
+  const initialTouchOffset = useRef(new Vector3());
+
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
@@ -35,13 +38,15 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
     };
 
     const handleMouseDown = (event: MouseEvent) => {
-      if (event.button === 1 || event.button === 0) { // Middle or left mouse button is pressed
+      if (event.button === 1 || event.button === 0) {
+        // Middle or left mouse button is pressed
         isPanning.current = true;
       }
     };
 
     const handleMouseUp = (event: MouseEvent) => {
-      if (event.button === 1 || event.button === 0) { // Middle or left mouse button is released
+      if (event.button === 1 || event.button === 0) {
+        // Middle or left mouse button is released
         isPanning.current = false;
       }
     };
@@ -57,16 +62,63 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       }
     };
 
-    window.addEventListener('wheel', handleWheel);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('mousemove', handleMouseMove);
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 1) {
+        isPanning.current = true;
+        initialTouchOffset.current.copy(initialOffset.current);
+      } else if (event.touches.length === 2) {
+        initialTouchDistance.current =
+          event.touches[0].pageX - event.touches[1].pageX;
+      }
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (isPanning.current && event.touches.length === 1) {
+        const panSpeed = 0.005;
+        const movementX = event.touches[0].pageX - event.touches[0].clientX;
+        const movementY = event.touches[0].pageY - event.touches[0].clientY;
+        const spherical = new Spherical().setFromVector3(
+          initialTouchOffset.current
+        );
+        spherical.theta -= movementX * panSpeed;
+        spherical.phi -= movementY * panSpeed;
+        spherical.makeSafe();
+        initialOffset.current.setFromSpherical(spherical);
+      } else if (event.touches.length === 2) {
+        const newTouchDistance =
+          event.touches[0].pageX - event.touches[1].pageX;
+        const zoomFactor = 1.4;
+        if (newTouchDistance > initialTouchDistance.current) {
+          initialOffset.current.multiplyScalar(1 / zoomFactor);
+        } else {
+          initialOffset.current.multiplyScalar(zoomFactor);
+        }
+        initialTouchDistance.current = newTouchDistance;
+      }
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length === 0) {
+        isPanning.current = false;
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, []);
 
