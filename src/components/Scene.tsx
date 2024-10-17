@@ -24,11 +24,11 @@ const Scene = () => {
 
   return (
     <CameraProvider>
-      {/* <Sun > */}
+      <Sun >
         <Earth position={new THREE.Vector3(10, 0, 0)}>
           <Moon />
         </Earth>
-      {/* </Sun> */}
+      </Sun>
       {/* <Moon /> */}
       {/* <SolarObj
         name="Mercury"
@@ -46,7 +46,7 @@ const Scene = () => {
       /> */}
 
       {/* <ExplosionProvider> */}
-      <Sun />
+      {/* <Sun /> */}
       {/* <Earth /> */}
       {/* <Earth2 /> */}
       {/* <Asteroid /> */}

@@ -47,7 +47,7 @@ const Earth: React.FC<EarthProps> = ({
   const lightsRef = useRef() as any;
 
     const defaultOrbit = {
-      a: 50,
+      a: 4000,
       e: 0.5,
       inclination: THREE.MathUtils.degToRad(0),
       omega: THREE.MathUtils.degToRad(0),
@@ -100,6 +100,8 @@ const Earth: React.FC<EarthProps> = ({
       );
       cloudRef.current.position.set(position.x, position.y, position.z);
       lightsRef.current.position.set(position.x, position.y, position.z);
+
+      handleFocus({ object: earthRef.current });
 
       return () => {
         console.log("Earth unmounted");

@@ -57,7 +57,7 @@ const Satellite: React.FC<SatelliteProps> = ({
         false
       );
 
-      console.log("MOON IS: ", planetPosition);
+      // console.log("MOON IS: ", planetPosition);
       
       moonRef.current.position.set(
         planetPosition.x + position.x,
