@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import { useCamera } from "../context/Camera";
 import { TextureLoader } from "three";
@@ -11,6 +11,7 @@ import EarthNormalMap from "../assets/textures/8k_earth_normal_map.jpg";
 import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg";
 import { OrbitalParams } from "../types";
 import { propagate } from "../utils/planetCalculations";
+import OrbitLine from "./OrbitLine"; // Import the new OrbitLine component
 
 export const earthSize = 10;
 
@@ -29,6 +30,7 @@ const Earth: React.FC<EarthProps> = ({
 }) => {
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
+  const focusedObject = cameraContext ? cameraContext.focusedObject : null;
   const mesh = useRef<THREE.InstancedMesh>(null);
 
   const [colourMap, normalMap, specularMap, cloudsMap, lightsMap] = useLoader(
@@ -46,18 +48,20 @@ const Earth: React.FC<EarthProps> = ({
   const cloudRef = useRef() as any;
   const lightsRef = useRef() as any;
 
-    const defaultOrbit = {
-      a: 40000,
-      e: 0.5,
-      inclination: THREE.MathUtils.degToRad(0),
-      omega: THREE.MathUtils.degToRad(0),
-      raan: THREE.MathUtils.degToRad(0),
-      q: 10,
-    };
+  const [isFocused, setIsFocused] = useState(false); // State variable to track focus state
 
-    const orbitalParams = orbit || defaultOrbit;
+  const defaultOrbit = {
+    a: 4000,
+    e: 0.5,
+    inclination: THREE.MathUtils.degToRad(0),
+    omega: THREE.MathUtils.degToRad(0),
+    raan: THREE.MathUtils.degToRad(0),
+    q: 10,
+  };
 
-  useFrame(({ clock }) => {
+  const orbitalParams = orbit || defaultOrbit;
+
+  useFrame(({ clock, camera }) => {
     const elapsedTime = clock.getElapsedTime();
     (earthRef.current as any).rotation.x = (-23.4 * Math.PI) / 180;
     (cloudRef.current as any).rotation.x = (-23.4 * Math.PI) / 180;
@@ -71,7 +75,7 @@ const Earth: React.FC<EarthProps> = ({
     lightsRef.current
       ? ((lightsRef.current as any).rotation.y = elapsedTime / 6)
       : console.log("lightsRef undefined");
-    
+
     if (earthRef.current && cloudRef.current && lightsRef.current) {
       const position = propagate(
         elapsedTime,
@@ -84,33 +88,38 @@ const Earth: React.FC<EarthProps> = ({
         20000
       );
 
-      const [x, y, z] = [centrePosition.x + position.x,  centrePosition.y + position.y,  centrePosition.z + position.z];
+      const [x, y, z] = [
+        centrePosition.x + position.x,
+        centrePosition.y + position.y,
+        centrePosition.z + position.z,
+      ];
 
       earthRef.current.position.set(x, y, z);
       cloudRef.current.position.set(x, y, z);
       lightsRef.current.position.set(x, y, z);
     }
+
+    // Update focus state
+    if (focusedObject?.object === earthRef.current && !isFocused) {
+      setIsFocused(true);
+    } else if (focusedObject?.object !== earthRef.current && isFocused) {
+      setIsFocused(false);
+    }
   });
 
-    useEffect(() => {
-      console.log("Earth mounted");
-      earthRef.current.position.set(
-        position.x,
-        position.y,
-        position.z
-      );
-      cloudRef.current.position.set(position.x, position.y, position.z);
-      lightsRef.current.position.set(position.x, position.y, position.z);
+  useEffect(() => {
+    console.log("Earth mounted");
+    earthRef.current.position.set(position.x, position.y, position.z);
+    cloudRef.current.position.set(position.x, position.y, position.z);
+    lightsRef.current.position.set(position.x, position.y, position.z);
 
-      handleFocus({ object: earthRef.current });
+    handleFocus({ object: earthRef.current });
 
-      return () => {
-        console.log("Earth unmounted");
-        // Any cleanup code can go here
-      };
-    }, []);
-  
-  
+    return () => {
+      console.log("Earth unmounted");
+      // Any cleanup code can go here
+    };
+  }, []);
 
   return (
     <group>
@@ -125,7 +134,8 @@ const Earth: React.FC<EarthProps> = ({
         ref={mesh}
       >
         <ambientLight intensity={0.03} />
-        <mesh ref={cloudRef}
+        <mesh
+          ref={cloudRef}
           // position={position}
         >
           <sphereGeometry args={[earthSize, 132, 132]} />
@@ -137,7 +147,8 @@ const Earth: React.FC<EarthProps> = ({
             blending={2}
           />
         </mesh>
-        <mesh ref={lightsRef}
+        <mesh
+          ref={lightsRef}
           // position={position}
         >
           <sphereGeometry args={[earthSize, 132, 132]} />
@@ -160,12 +171,18 @@ const Earth: React.FC<EarthProps> = ({
         if (React.isValidElement(child)) {
           return React.cloneElement(
             child as React.ReactElement<{ planetPosition: THREE.Vector3 }>,
-            { planetPosition: earthRef?.current?.position?? position }
+            { planetPosition: earthRef?.current?.position ?? position }
           );
           // return React.cloneElement(child, { planetPosition: position });
         }
         return child;
       })}
+      <OrbitLine
+        orbitalParams={orbitalParams}
+        centrePosition={centrePosition}
+        earthRef={earthRef}
+        isFocused={isFocused}
+      />
     </group>
   );
 };
