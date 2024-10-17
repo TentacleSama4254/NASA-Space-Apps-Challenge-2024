@@ -25,6 +25,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const isPanning = useRef(false);
   const initialTouchDistance = useRef(0);
   const initialTouchOffset = useRef(new Vector3());
+  const predefinedDistance = 50;
 
 
   useEffect(() => {
@@ -125,7 +126,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   useFrame(() => {
     if (focusedObject) {
       const target = focusedObject.object.position.clone();
-      const smoothness = 0.8;
+      const smoothness = 0.1; // Adjust this value for smoother or faster interpolation
 
       // Calculate the desired camera position with the initial offset
       const desiredPosition = target.clone().add(initialOffset.current);
@@ -158,7 +159,11 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       setFocusedObject({ object, instanceId });
 
       // Calculate and store the initial offset between the camera and the target
-      initialOffset.current.copy(camera.position.clone().sub(object.position));
+      const direction = camera.position
+        .clone()
+        .sub(object.position)
+        .normalize();
+      initialOffset.current.copy(direction.multiplyScalar(predefinedDistance));
     }
   };
 
