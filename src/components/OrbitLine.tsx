@@ -7,14 +7,14 @@ import { OrbitalParams } from "../types";
 interface OrbitLineProps {
   orbitalParams: OrbitalParams;
   centrePosition: THREE.Vector3;
-  earthRef: React.RefObject<THREE.Object3D>;
+  planetRef: React.RefObject<THREE.Object3D>;
   isFocused: boolean; // Add isFocused prop
 }
 
 const OrbitLine: React.FC<OrbitLineProps> = ({
   orbitalParams,
   centrePosition,
-  earthRef,
+  planetRef,
   isFocused,
 }) => {
   const orbitRef = useRef<THREE.Line | null>(null);
@@ -64,9 +64,9 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
   }, [isFocused]);
 
   useFrame(({ camera }) => {
-    if (orbitRef.current && earthRef.current) {
+    if (orbitRef.current && planetRef.current) {
       const material = orbitRef.current.material as THREE.LineBasicMaterial;
-      const distance = camera.position.distanceTo(earthRef.current.position);
+      const distance = camera.position.distanceTo(planetRef.current.position);
       const maxDistance = 1000; // Adjust this value as needed
       const minOpacity = 0.05; // Minimum opacity value
       const maxOpacity = 1.0; // Maximum opacity value

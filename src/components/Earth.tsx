@@ -83,7 +83,7 @@ const Earth: React.FC<EarthProps> = ({
         orbitalParams.omega,
         orbitalParams.raan,
         false,
-        200
+        2000
       );
 
       const [x, y, z] = [
@@ -166,7 +166,10 @@ const Earth: React.FC<EarthProps> = ({
         if (React.isValidElement(child)) {
           return React.cloneElement(
             child as React.ReactElement<{ planetPosition: THREE.Vector3 }>,
-            { planetPosition: earthRef?.current?.position ?? new THREE.Vector3(10, 0, 0) }
+            {
+              planetPosition:
+                earthRef?.current?.position ?? new THREE.Vector3(10, 0, 0),
+            }
           );
           // return React.cloneElement(child, { planetPosition: position });
         }
@@ -175,7 +178,7 @@ const Earth: React.FC<EarthProps> = ({
       <OrbitLine
         orbitalParams={orbitalParams}
         centrePosition={centrePosition}
-        earthRef={earthRef}
+        planetRef={earthRef}
         isFocused={isFocused}
       />
     </group>

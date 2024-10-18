@@ -25,7 +25,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const isPanning = useRef(false);
   const initialTouchDistance = useRef(0);
   const initialTouchOffset = useRef(new Vector3());
-  const predefinedDistance = 50;
+  const predefinedDistance = 30;
 
 
   useEffect(() => {

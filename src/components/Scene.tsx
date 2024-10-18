@@ -16,6 +16,7 @@ import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
 import AsteroidField from "./AsteroidField";
 import AxesHelper from "../utils/AxesHelper";
+import Planet from "./SolarBody";
 
 // Scene component
 const Scene = () => {
@@ -29,6 +30,7 @@ const Scene = () => {
         <Earth >
           <Moon />
         </Earth>
+        <Planet name="Mars" scale={9} texture_path="/textures/8k_mars.jpg"/>
       </Sun>
       {/* <Moon /> */}
       {/* <SolarObj

@@ -10,18 +10,7 @@ import {
 import MoonMap from "./../assets/textures/8k_moon.jpg";
 import { earthSize } from "./Earth";
 import OrbitLine from "./OrbitLine"; // Import the OrbitLine component
-
-interface SatelliteProps {
-  planetPosition?: THREE.Vector3;
-  orbit?: {
-    a: number;
-    e: number;
-    inclination: number;
-    omega: number;
-    raan: number;
-    q: number;
-  };
-}
+import { OrbitalParams, SatelliteProps } from "../types";
 
 const Satellite: React.FC<SatelliteProps> = ({
   planetPosition = new THREE.Vector3(0, 0, 0),
@@ -98,7 +87,7 @@ const Satellite: React.FC<SatelliteProps> = ({
       <OrbitLine
         orbitalParams={orbitalParams}
         centrePosition={dynamicCentrePosition}
-        earthRef={moonRef}
+        planetRef={moonRef}
         isFocused={isFocused}
       />
     </group>
