@@ -16,14 +16,12 @@ import OrbitLine from "./OrbitLine"; // Import the new OrbitLine component
 export const earthSize = 10;
 
 interface EarthProps {
-  position?: THREE.Vector3;
   children?: React.ReactNode;
   orbit?: OrbitalParams;
   centrePosition?: THREE.Vector3;
 }
 
 const Earth: React.FC<EarthProps> = ({
-  position = new THREE.Vector3(0, 0, 0),
   children,
   orbit,
   centrePosition = new THREE.Vector3(0, 0, 0),
@@ -85,7 +83,7 @@ const Earth: React.FC<EarthProps> = ({
         orbitalParams.omega,
         orbitalParams.raan,
         false,
-        20000
+        200
       );
 
       const [x, y, z] = [
@@ -109,10 +107,7 @@ const Earth: React.FC<EarthProps> = ({
 
   useEffect(() => {
     console.log("Earth mounted");
-    earthRef.current.position.set(position.x, position.y, position.z);
-    cloudRef.current.position.set(position.x, position.y, position.z);
-    lightsRef.current.position.set(position.x, position.y, position.z);
-
+   
     handleFocus({ object: earthRef.current });
 
     return () => {
@@ -171,7 +166,7 @@ const Earth: React.FC<EarthProps> = ({
         if (React.isValidElement(child)) {
           return React.cloneElement(
             child as React.ReactElement<{ planetPosition: THREE.Vector3 }>,
-            { planetPosition: earthRef?.current?.position ?? position }
+            { planetPosition: earthRef?.current?.position ?? new THREE.Vector3(10, 0, 0) }
           );
           // return React.cloneElement(child, { planetPosition: position });
         }

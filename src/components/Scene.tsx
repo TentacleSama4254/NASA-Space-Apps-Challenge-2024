@@ -26,7 +26,7 @@ const Scene = () => {
     <CameraProvider>
       {/* <AxesHelper /> */}
       <Sun>
-        <Earth position={new THREE.Vector3(10, 0, 0)}>
+        <Earth >
           <Moon />
         </Earth>
       </Sun>
