@@ -15,7 +15,6 @@ import Moon from "./Moon";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
 import AsteroidField from "./AsteroidField";
-import RotataingObj from "./RefPlanets";
 import AxesHelper from "../utils/AxesHelper";
 
 // Scene component
@@ -54,11 +53,7 @@ const Scene = () => {
       {/* <Asteroid /> */}
       {/* <AsteroidField />  */}
       {/* <Globe  /> */}
-      {/* <Test /> */}
-      <TrailProvider>
-        {/* <Revolution Component={Moon} heliocentric={false} /> */}
-        <Revolution Component={RotataingObj} heliocentric={false} />
-      </TrailProvider>
+      {/* <Test /> */}  
       <Stars depth={150000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
       {/* <Stars depth={100000} factor={696} saturation={124} /> */}
