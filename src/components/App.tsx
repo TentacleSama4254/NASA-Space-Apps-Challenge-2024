@@ -29,7 +29,6 @@ const App = () => (
 
       <Physics gravity={[0, 0, 0]}>
         <Scene />
-        {/* <Sun /> */}
       </Physics>
  
       <EffectComposer>

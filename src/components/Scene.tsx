@@ -33,21 +33,6 @@ const Scene = () => {
         <Planet name="Mars" scale={9} texture_path="/textures/8k_mars.jpg"/>
       </Sun>
       {/* <Moon /> */}
-      {/* <SolarObj
-        name="Mercury"
-        position={[40, 0, 0]}
-        scale={0.5}
-        orbit={{
-          a: 25,
-          e: 1,
-          inclination: 0,
-          omega: 0,
-          raan: 0,
-          q: 10,
-        }}
-        texture_path={"/textures/8k_mars.jpg"}
-      /> */}
-
       {/* <ExplosionProvider> */}
       {/* <Sun /> */}
       {/* <Earth /> */}
