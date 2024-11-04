@@ -19,7 +19,7 @@ const STL_Paths = [
 const Asteroid: React.FC<PlanetDataType> = ({
   name,
   // position,
-  scale,
+  diameter,
   texture_path,
 }) => {
   const cameraContext = useCamera();

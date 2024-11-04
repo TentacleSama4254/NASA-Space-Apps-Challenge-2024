@@ -9,7 +9,7 @@ import Revolution from "./Revolution";
 import Moon from "./Moon";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
-import AsteroidField from "./AsteroidField";
+// import AsteroidField from "./AsteroidField";
 import AxesHelper from "../utils/AxesHelper";
 import { PlanetData } from "../config/SolarBodiesImport";
 
@@ -25,7 +25,7 @@ const Scene = () => {
         <Earth >
           <Moon />
         </Earth>
-        <SolarObj name="Mars" diameter={9} texture_path="/textures/8k_mars.jpg"/>
+        <SolarObj name="Mars" diameter={9} texture_path="/textures/8k_mars.jpg"  distanceFromSun={0} period={0} position={0}/>
       </Sun>
       {/* <Moon /> */}
       {/* <ExplosionProvider> */}
