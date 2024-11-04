@@ -18,7 +18,7 @@ const STL_Paths = [
 
 const Asteroid: React.FC<PlanetDataType> = ({
   name,
-  position,
+  // position,
   scale,
   texture_path,
 }) => {
@@ -51,7 +51,7 @@ const Asteroid: React.FC<PlanetDataType> = ({
       colliders="ball"
       userData={{ type: "Asteroid" }}
       type="kinematicPosition"
-      position={position}
+      // position={position}
       // onClick={handleFocus}
     >
       {/* <ambientLight intensity={0.001} /> */}

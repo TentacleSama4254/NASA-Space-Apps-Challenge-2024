@@ -101,9 +101,10 @@ export const propagate = (
   inclination: number,
   omega: number,
   raan: number,
-  heliocentric = true
+  heliocentric = true,
+  Period?: number
 ): THREE.Vector3 => {
-  const T = 120; // seconds
+  const T = Period??120; // seconds AND DEPENDS ON THE ORBITAL PERIOD
   const n = (2 * Math.PI) / T;
   const tau = 0; // time of pericenter passage
 
@@ -118,9 +119,9 @@ export const propagate = (
 
   // Apply rotations (pitch, yaw, roll)
   const point = heliocentric? new THREE.Vector3(s_x, s_y, s_z).add(SUN_OFFSET): new THREE.Vector3(s_x, s_y, s_z);
-  point.applyAxisAngle(new THREE.Vector3(0, 1, 0), inclination); // Pitch
   point.applyAxisAngle(new THREE.Vector3(0, 0, 1), omega); // Yaw
-  point.applyAxisAngle(new THREE.Vector3(1, 0, 0), raan); // Roll
+  point.applyAxisAngle(new THREE.Vector3(0, 1, 0), inclination); // Pitch
+  point.applyAxisAngle(new THREE.Vector3(1, 0, 0), raan + THREE.MathUtils.degToRad(90)); // Roll
 
   return point;
 };

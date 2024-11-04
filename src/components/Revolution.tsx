@@ -60,7 +60,8 @@ const Revolution: React.FC<RevolutionProps> = ({
   }, [count]);
 
   // Set up the initial planet data
-  const planetData = useMemo(() => {
+  const planetData =
+    useMemo(() => {
     const planets: AsteroidData[] = [];
     for (let i = 0; i < count; i++) {
       const key = "instance_" + Math.random();

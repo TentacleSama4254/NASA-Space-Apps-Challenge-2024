@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 
-export interface PlanetData {
+export interface PlanetaryAttributes {
   key: string;
   position: THREE.Vector3;
   scale: number;
