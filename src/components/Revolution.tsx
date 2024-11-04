@@ -15,22 +15,20 @@ import { AsteroidData } from "../types/Asteroid";
 import { RigidBody } from "@react-three/rapier";
 import Earth from "./Earth";
 import usePosition from "../hooks/usePosition"; // Import the custom hook
-import { OrbitalParams } from "../types";
+import { OrbitalParams, PlanetDataType } from "../types";
 
 // Define the props for the Revolution component
 interface RevolutionProps {
   Component: React.ComponentType<any>;
-  componentProps?: any;
+  componentProps?: PlanetDataType;
   position?: Vector3;
   heliocentric?: boolean;
-  orbit?: OrbitalParams;
 }
 
 // Planets component
 const Revolution: React.FC<RevolutionProps> = ({
   Component,
   componentProps,
-  orbit,
   position,
   heliocentric = true,
 }) => {
@@ -46,8 +44,8 @@ const Revolution: React.FC<RevolutionProps> = ({
   const orbitalParams = useMemo(() => {
     const params = [];
     for (let i = 0; i < count; i++) {
-      if (orbit) {
-        params.push(orbit);
+      if (componentProps?.orbit) {
+        params.push(componentProps?.orbit);
         continue;
       }
       const a = 50 + Math.random() * 50; // Semi-major axis

@@ -1,5 +1,5 @@
 import { Vector3 } from "@react-three/fiber";
-import { OrbitalParams } from "./Orbit";
+import { OrbitalParams } from "../types";
 
 export interface AsteroidData {
   key: string;

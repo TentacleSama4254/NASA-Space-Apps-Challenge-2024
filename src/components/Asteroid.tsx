@@ -6,7 +6,7 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import * as THREE from "three";
 import { useCamera } from "../context/Camera";
 import { earthSize } from "./Earth";
-import { PlanetData } from "../types/SolarBodies";
+import { PlanetDataType } from "../types/SolarBodies";
 
 const STL_Paths = [
   // "/asteroids/asteroid_1.stl",
@@ -16,7 +16,7 @@ const STL_Paths = [
   // "asteroids/asteroid_5.stl",
 ];
 
-const Asteroid: React.FC<PlanetData> = ({
+const Asteroid: React.FC<PlanetDataType> = ({
   name,
   position,
   scale,

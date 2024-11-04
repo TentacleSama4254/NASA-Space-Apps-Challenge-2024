@@ -1,13 +1,5 @@
 import * as THREE from 'three';
 
-export interface OrbitalParams {
-  a: number;
-  e: number;
-  inclination: number;
-  omega: number;
-  raan: number;
-  q: number;
-}
 
 export interface PlanetData {
   key: string;

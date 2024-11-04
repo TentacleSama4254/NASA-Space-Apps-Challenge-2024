@@ -15,6 +15,7 @@ import Moon from "./Moon";
 import Asteroid from "./Asteroid";
 import SolarObj from "./SolarBody";
 import AsteroidField from "./AsteroidField";
+import { PlanetData } from "../config/SolarBodiesImport";
 
 // Scene component
 const Scene = () => {
@@ -25,27 +26,16 @@ const Scene = () => {
     <CameraProvider>
       <Earth position={new THREE.Vector3(0, 0, 0)} />
       {/* <Moon /> */}
-      {/* <SolarObj
-        name="Mercury"
-        position={[40, 0, 0]}
-        scale={0.5}
-        orbit={{
-          a: 25,
-          e: 1,
-          inclination: 0,
-          omega: 0,
-          raan: 0,
-          q: 10,
-        }}
-        texture_path={"/textures/8k_mars.jpg"}
-      /> */}
+      {/* <SolarObj {...PlanetData.mercury} heliocentric={true} */}
+      <Revolution Component={SolarObj} componentProps={PlanetData.mercury} heliocentric={false} />
+     
 
       {/* <ExplosionProvider> */}
       <Sun />
       {/* <Earth /> */}
       {/* <Earth2 /> */}
       {/* <Asteroid /> */}
-      <AsteroidField />
+      {/* <AsteroidField /> */}
       {/* <Globe  /> */}
       {/* <Test /> */}
       <TrailProvider>

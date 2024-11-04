@@ -10,14 +10,14 @@ import { TextureLoader } from "three";
 
 import * as THREE from "three";
 import { earthSize } from "./Earth";
-import { PlanetData } from "../types/SolarBodies";
+import { PlanetDataType } from "../types/SolarBodies";
 
 
 
-const SolarBody: React.FC<PlanetData> = ({
+const SolarBody: React.FC<PlanetDataType> = ({
   name,
   position,
-  scale,
+  diameter,
   orbit,
   texture_path,
 }) => {
@@ -46,7 +46,7 @@ const SolarBody: React.FC<PlanetData> = ({
     >
       <ambientLight intensity={0.03} />
       <mesh ref={moonRef}>
-        <sphereGeometry args={[earthSize * scale, 64, 64]} />
+        <sphereGeometry args={[diameter, 64, 64]} />
         <meshPhongMaterial map={moonMap} />
       </mesh>
     </RigidBody>
