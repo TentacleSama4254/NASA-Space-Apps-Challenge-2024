@@ -12,6 +12,7 @@ import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg";
 import { OrbitalParams } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "./OrbitLine"; // Import the new OrbitLine component
+import { Html } from "@react-three/drei";
 
 export const earthSize = 10;
 
@@ -45,6 +46,7 @@ const Earth: React.FC<EarthProps> = ({
   const earthRef = useRef() as any;
   const cloudRef = useRef() as any;
   const lightsRef = useRef() as any;
+  const HtmlRef = useRef() as any;
 
   const [isFocused, setIsFocused] = useState(false); // State variable to track focus state
 
@@ -95,6 +97,8 @@ const Earth: React.FC<EarthProps> = ({
       earthRef.current.position.set(x, y, z);
       cloudRef.current.position.set(x, y, z);
       lightsRef.current.position.set(x, y, z);
+      // HtmlRef.current.position.set(x, y, z);
+      // console.log(HtmlRef.current);
     }
 
     // Update focus state
@@ -161,6 +165,11 @@ const Earth: React.FC<EarthProps> = ({
           <meshStandardMaterial map={colourMap} normalMap={normalMap} />
         </mesh>
       </instancedMesh>
+      {/* <Html style={{ pointerEvents: "none" }} ref={HtmlRef}>
+        <div>
+          Hello
+        </div>
+      </Html> */}
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
