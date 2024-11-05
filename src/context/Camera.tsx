@@ -27,7 +27,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const isPanning = useRef(false);
   const initialTouchDistance = useRef(0);
   const initialTouchOffset = useRef(new Vector3());
-  const predefinedDistance = 30;
+  const predefinedDistance = 20;
 
   const [scaleTextKm, setScaleTextKm] = useState("1000km");
   const [scaleTextAu, setScaleTextAu] = useState("0.0067AU");
@@ -174,7 +174,13 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
 
       // Calculate and store the initial offset between the camera and the target
       const direction = camera.position.clone().sub(object.position).normalize();
-      initialOffset.current.copy(direction.multiplyScalar(predefinedDistance));
+      initialOffset.current.copy(
+        direction.multiplyScalar(
+          object?.geometry?.parameters?.radius
+            ? object?.geometry?.parameters?.radius * 1.9
+            : predefinedDistance
+        )
+      );
 
       // Apply a slight rotation to the camera
       const spherical = new Spherical().setFromVector3(initialOffset.current);

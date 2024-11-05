@@ -82,7 +82,7 @@ const Planet: React.FC<PlanetDataType> = ({
 
   return (
     <group>
-      <mesh ref={planetRef} onClick={handleFocus}>
+      <mesh ref={planetRef} onClick={handleFocus} userData={{diameter}}>
         <sphereGeometry args={[diameter *100 //temp value, should be diameter
           , 64, 64]} />
         <meshPhongMaterial map={planetMap} />
