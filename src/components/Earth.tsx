@@ -11,7 +11,7 @@ import EarthNormalMap from "../assets/textures/8k_earth_normal_map.jpg";
 import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg";
 import { OrbitalParams } from "../types";
 import { propagate } from "../utils/planetCalculations";
-import OrbitLine from "./OrbitLine"; // Import the new OrbitLine component
+import OrbitLine from "../context/OrbitLine"; // Import the new OrbitLine component
 import { Html } from "@react-three/drei";
 import { PlanetData } from "../config/SolarBodiesImport";
 

@@ -5,7 +5,7 @@ import { TextureLoader } from "three";
 import * as THREE from "three";
 import { PlanetDataType, SatelliteProps } from "../types";
 import { propagate } from "../utils/planetCalculations";
-import OrbitLine from "./OrbitLine";
+import OrbitLine from "../context/OrbitLine";
 
 const Planet: React.FC<PlanetDataType> = ({
   name,

@@ -9,7 +9,7 @@ import {
 } from "../utils/planetCalculations";
 import MoonMap from "./../assets/textures/8k_moon.jpg";
 import { earthSize } from "./Earth";
-import OrbitLine from "./OrbitLine"; // Import the OrbitLine component
+import OrbitLine from "../context/OrbitLine"; // Import the OrbitLine component
 import { OrbitalParams, SatelliteProps } from "../types";
 
 const Satellite: React.FC<SatelliteProps> = ({

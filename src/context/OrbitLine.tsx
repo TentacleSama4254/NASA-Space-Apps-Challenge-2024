@@ -67,8 +67,8 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
     if (orbitRef.current && planetRef.current) {
       const material = orbitRef.current.material as THREE.LineBasicMaterial;
       const distance = camera.position.distanceTo(planetRef.current.position);
-      const maxDistance = 1000; // Adjust this value as needed
-      const minOpacity = 0.05; // Minimum opacity value
+      const maxDistance = 4000; // Adjust this value as needed
+      const minOpacity = 0.08; // Minimum opacity value
       const maxOpacity = 1.0; // Maximum opacity value
 
       const opacity = THREE.MathUtils.clamp(
