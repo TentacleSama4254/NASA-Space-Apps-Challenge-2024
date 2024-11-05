@@ -2,7 +2,6 @@
 import { Html, Stars } from "@react-three/drei";
 import * as THREE from 'three';
 import { CameraProvider, CameraContext } from "../context/Camera";
-import { TrailProvider } from "../context/Trails";
 import Earth from "./Earth";
 import Sun from "./Sun";
 import Revolution from "./Revolution";
