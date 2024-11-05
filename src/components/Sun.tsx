@@ -109,7 +109,7 @@ const Sun: React.FC<SunProps> = ({
 
         <pointLight
           // position={SUN_OFFSET.toArray()}
-          intensity={4}
+          intensity={3.1}
           color={"rgb(220, 250, 249)"}
           decay={0}
         />

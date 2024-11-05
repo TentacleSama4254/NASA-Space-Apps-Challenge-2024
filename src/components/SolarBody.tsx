@@ -13,6 +13,7 @@ const Planet: React.FC<PlanetDataType> = ({
   orbit,
   texture_path,
   children,
+  period,
   centrePosition = new THREE.Vector3(0, 0, 0),
 }) => {
   const cameraContext = useCamera();
@@ -51,7 +52,7 @@ const Planet: React.FC<PlanetDataType> = ({
         orbitalParams.omega,
         orbitalParams.raan,
         false,
-        2500
+        period
       );
 
       const [x, y, z] = [
