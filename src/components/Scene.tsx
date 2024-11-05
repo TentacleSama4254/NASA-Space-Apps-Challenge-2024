@@ -1,31 +1,43 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Stars } from "@react-three/drei";
+import { Html, Stars } from "@react-three/drei";
 import * as THREE from 'three';
-import { CameraProvider } from "../context/Camera";
+import { CameraProvider, CameraContext } from "../context/Camera";
 import { TrailProvider } from "../context/Trails";
 import Earth from "./Earth";
 import Sun from "./Sun";
 import Revolution from "./Revolution";
 import Moon from "./Moon";
 import Asteroid from "./Asteroid";
+import ScaleBar from "./Scale-Bar";
 import SolarObj from "./SolarBody";
 // import AsteroidField from "./AsteroidField";
 import AxesHelper from "../utils/AxesHelper";
 import { PlanetData } from "../config/SolarBodiesImport";
+import { useContext } from "react";
 
 // Scene component
 const Scene = () => {
   // Custom hook for gravity logic
   // useGravity();
+  const cameraContext = useContext(CameraContext);
+  const scaleTextKm = cameraContext?.scaleTextKm ?? '---';
+  const scaleTextAu = cameraContext?.scaleTextAu ?? 'HELLO';
 
   return (
     <CameraProvider>
       {/* <AxesHelper /> */}
       <Sun>
-        <Earth >
+        <Earth>
           <Moon />
         </Earth>
-        <SolarObj name="Mars" diameter={9} texture_path="/textures/8k_mars.jpg"  distanceFromSun={0} period={0} position={0}/>
+        <SolarObj
+          name="Mars"
+          diameter={9}
+          texture_path="/textures/8k_mars.jpg"
+          distanceFromSun={0}
+          period={0}
+          position={0}
+        />
       </Sun>
       {/* <Moon /> */}
       {/* <ExplosionProvider> */}
@@ -35,9 +47,12 @@ const Scene = () => {
       {/* <Asteroid /> */}
       {/* <AsteroidField />  */}
       {/* <Globe  /> */}
-      {/* <Test /> */}  
+      {/* <Test /> */}
       <Stars depth={150000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
+      {/* <Html position={[0, 0, 0]} style={{ pointerEvents: "none" }}>
+        <ScaleBar scaleTextKm={scaleTextKm} scaleTextAu={scaleTextAu} padding_bottom={10} padding_left={10} />
+      </Html> */}
       {/* <Stars depth={100000} factor={696} saturation={124} /> */}
     </CameraProvider>
   );

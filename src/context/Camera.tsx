@@ -5,9 +5,11 @@ import { Vector3, Camera, Spherical } from "three";
 interface CameraContextType {
   focusedObject: { object: any; instanceId?: number } | null;
   handleFocus: (event: { object: any; instanceId?: number }) => void;
+  scaleTextKm: string;
+  scaleTextAu: string;
 }
 
-const CameraContext = createContext<CameraContextType | null>(null);
+export const CameraContext = createContext<CameraContextType | null>(null);
 
 export const useCamera = () => useContext(CameraContext);
 
@@ -27,6 +29,8 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const initialTouchOffset = useRef(new Vector3());
   const predefinedDistance = 30;
 
+  const [scaleTextKm, setScaleTextKm] = useState("1000km");
+  const [scaleTextAu, setScaleTextAu] = useState("0.0067AU");
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
@@ -36,6 +40,16 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       } else {
         initialOffset.current.multiplyScalar(zoomFactor);
       }
+      updateScale();
+    };
+
+    const updateScale = () => {
+      const zoomLevel = camera.position.length();
+      console.log("Zoom level:", zoomLevel);
+      const scaleKm = (zoomLevel / 1000).toFixed(2) + "km";
+      const scaleAu = (zoomLevel / 149597870.7).toFixed(4) + "AU";
+      setScaleTextKm(scaleKm);
+      setScaleTextAu(scaleAu);
     };
 
     const handleMouseDown = (event: MouseEvent) => {
@@ -172,7 +186,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   };
 
   return (
-    <CameraContext.Provider value={{ focusedObject, handleFocus }}>
+    <CameraContext.Provider value={{ focusedObject, handleFocus,scaleTextKm, scaleTextAu }}>
       {children}
     </CameraContext.Provider>
   );
