@@ -22,10 +22,16 @@ const Scene = () => {
     <CameraProvider>
       {/* <AxesHelper /> */}
       <Sun>
-        <Earth >
+        <SolarObj {...PlanetData.mercury}/>
+        <SolarObj {...PlanetData.venus}/>
+        <Earth orbit={PlanetData.earth.orbit}>
           <Moon />
         </Earth>
-        <SolarObj name="Mars" diameter={9} texture_path="/textures/8k_mars.jpg"  distanceFromSun={0} period={0} position={0}/>
+        <SolarObj {...PlanetData.mars}/>
+        <SolarObj {...PlanetData.jupiter}/>
+        <SolarObj {...PlanetData.saturn}/>
+        <SolarObj {...PlanetData.uranus}/>
+        <SolarObj {...PlanetData.neptune}/>
       </Sun>
       {/* <Moon /> */}
       {/* <ExplosionProvider> */}

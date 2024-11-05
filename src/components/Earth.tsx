@@ -12,8 +12,9 @@ import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg";
 import { OrbitalParams } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "./OrbitLine"; // Import the new OrbitLine component
+import { PlanetData } from "../config/SolarBodiesImport";
 
-export const earthSize = 10;
+export const earthSize = PlanetData.earth.diameter *100 //10;
 
 interface EarthProps {
   children?: React.ReactNode;

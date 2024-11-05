@@ -6,9 +6,9 @@ import { ReactElement } from "react";
 export interface PlanetDataType {
   name: string;
   diameter: number;
-  distanceFromSun: number;
+  // distanceFromSun: number;
   period: number; // Orbital period in Earth days (converted to seconds in the code)
-  position: Vector3|number[];
+  position?: Vector3|number[];
   orbit?: OrbitalParams;
   texture_path: string;
   centrePosition?: THREE.Vector3;
@@ -50,8 +50,4 @@ export interface OrbitalParams {
    * Right ascension of the ascending node (RAAN) in degrees.
    */
   raan: number;
-  /**
-   * Periapsis distance (q) of the orbit.
-   */
-  q: number;
 }
