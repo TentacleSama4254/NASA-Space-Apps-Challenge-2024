@@ -92,7 +92,7 @@ const Revolution: React.FC<RevolutionProps> = ({
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     planetsRef.current?.forEach((planet, index) => {
-      const { a, e, inclination, omega, raan, q } = orbitalParams[index];
+      const { a, e, inclination, omega, raan} = orbitalParams[index];
       const position = propagate(t, a, e, inclination, omega, raan, heliocentric);
       // planet.setTranslation(position);
       // planet.isMoving(true);
