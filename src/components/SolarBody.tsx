@@ -6,12 +6,15 @@ import * as THREE from "three";
 import { PlanetDataType, SatelliteProps } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
+import SaturnRing from './PlanetRing'; // Import the SaturnRing component
 
 const Planet: React.FC<PlanetDataType> = ({
   name,
   diameter,
   orbit,
   texture_path,
+  texture_path1,
+  texture_path_ring,
   children,
   period,
   centrePosition = new THREE.Vector3(0, 0, 0),
@@ -23,7 +26,7 @@ const Planet: React.FC<PlanetDataType> = ({
   const [planetMap] = useLoader(TextureLoader, [texture_path]);
 
   const planetRef = useRef() as any;
-
+  const planetRef1 = useRef() as any;
   const [isFocused, setIsFocused] = useState(false);
 
   const defaultOrbit = {
@@ -62,6 +65,7 @@ const Planet: React.FC<PlanetDataType> = ({
       ];
 
       planetRef.current.position.set(x, y, z);
+      if (planetRef1) planetRef1.current?.position.set(x, y, z);
     }
 
     if (focusedObject?.object === planetRef.current && !isFocused) {
@@ -73,8 +77,6 @@ const Planet: React.FC<PlanetDataType> = ({
 
   useEffect(() => {
     console.log(`${name} mounted`);
-    // handleFocus({ object: planetRef.current });
-
     return () => {
       console.log(`${name} unmounted`);
     };
@@ -83,10 +85,31 @@ const Planet: React.FC<PlanetDataType> = ({
   return (
     <group>
       <mesh ref={planetRef} onClick={handleFocus} userData={{diameter}}>
-        <sphereGeometry args={[diameter *100 //temp value, should be diameter
-          , 64, 64]} />
+        <sphereGeometry args={[diameter * 100, 64, 64]} />
         <meshPhongMaterial map={planetMap} />
       </mesh>
+
+      {texture_path1 && (
+        <mesh ref={planetRef1} onClick={handleFocus} userData={{ diameter }}>
+          <sphereGeometry args={[diameter * 100, 64, 64]} />
+          <meshPhongMaterial
+            map={useLoader(TextureLoader, [texture_path1])[0]}
+            opacity={1}
+            depthWrite={true}
+            transparent={true}
+            blending={2}
+          />
+        </mesh>
+      )}
+
+{texture_path_ring && (
+        <SaturnRing
+          texturePath={texture_path_ring}
+          innerRadius={diameter * 100 * 2}
+          outerRadius={diameter * 100 * 2.5}
+          planetPosition={planetRef.current ? planetRef.current.position : new THREE.Vector3()}
+        />
+      )}
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
