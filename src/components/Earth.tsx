@@ -14,6 +14,7 @@ import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine"; // Import the new OrbitLine component
 import { Html } from "@react-three/drei";
 import { PlanetData } from "../config/SolarBodiesImport";
+import PlanetTag from "./PlanetTag";
 
 export const earthSize = PlanetData.earth.diameter *100 //10;
 
@@ -50,7 +51,8 @@ const Earth: React.FC<EarthProps> = ({
   const HtmlRef = useRef() as any;
 
   const [isFocused, setIsFocused] = useState(false); // State variable to track focus state
-
+  const [planetPosition, setPlanetPosition] = useState([0, 0, 0]);
+  
   const defaultOrbit = {
     a: 4000,
     e: 0.5,
@@ -100,6 +102,7 @@ const Earth: React.FC<EarthProps> = ({
       lightsRef.current.position.set(x, y, z);
       // HtmlRef.current.position.set(x, y, z);
       // console.log(HtmlRef.current);
+      setPlanetPosition([x, y, z]);
     }
 
     // Update focus state
@@ -166,11 +169,11 @@ const Earth: React.FC<EarthProps> = ({
           <meshStandardMaterial map={colourMap} normalMap={normalMap} />
         </mesh>
       </instancedMesh>
-      {/* <Html style={{ pointerEvents: "none" }} ref={HtmlRef}>
-        <div>
-          Hello
-        </div>
-      </Html> */}
+      <PlanetTag
+        position={planetPosition}
+        label="Earth"
+        imageUrl="/textures/8k_earth_daymap.jpg"
+      />
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
