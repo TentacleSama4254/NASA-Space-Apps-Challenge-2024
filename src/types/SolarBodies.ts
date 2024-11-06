@@ -6,11 +6,12 @@ import { ReactElement } from "react";
 export interface PlanetDataType {
   name: string;
   diameter: number;
-  // distanceFromSun: number;
   period: number; // Orbital period in Earth days (converted to seconds in the code)
   position?: Vector3|number[];
   orbit?: OrbitalParams;
   texture_path: string;
+  texture_path1 ?: string;
+  texture_path_ring ?: string;
   centrePosition?: THREE.Vector3;
   children?: ReactElement<typeof Satellite>;
 }

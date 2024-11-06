@@ -8,10 +8,11 @@ import Revolution from "./Revolution";
 import Moon from "./Moon";
 import Asteroid from "./Asteroid";
 import ScaleBar from "./Scale-Bar";
+import SaturnRing from "./PlanetRing";
 import SolarObj from "./SolarBody";
 // import AsteroidField from "./AsteroidField";
 import AxesHelper from "../utils/AxesHelper";
-import { PlanetData } from "../config/SolarBodiesImport";
+import { PlanetData , distanceFactor} from "../config/SolarBodiesImport";
 import { useContext } from "react";
 
 // Scene component
@@ -33,7 +34,15 @@ const Scene = () => {
         </Earth>
         <SolarObj {...PlanetData.mars}/>
         <SolarObj {...PlanetData.jupiter}/>
-        <SolarObj {...PlanetData.saturn}/>
+        <SolarObj {...PlanetData.saturn}>
+          <SaturnRing
+          texturePath={"https://i.postimg.cc/zz7Gr430/saturn-rings-top.png"}
+          // innerRadius={PlanetData.saturn.diameter * 100 * 2}
+          // outerRadius={PlanetData.saturn.diameter * 100 * 3}
+          innerRadius = {160000/distanceFactor *100}
+          outerRadius = {320000/distanceFactor *100}
+        />
+          </SolarObj>
         <SolarObj {...PlanetData.uranus}/>
         <SolarObj {...PlanetData.neptune}/>
       </Sun>

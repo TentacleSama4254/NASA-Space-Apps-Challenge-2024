@@ -9,7 +9,7 @@ import NeptuneMap from "../assets/textures/2k_neptune.jpg"
 import { TextureLoader } from "three";
 import { PlanetDataType } from "../types/SolarBodies"
 
-const distanceFactor = 100000/2;
+export const distanceFactor = 100000/2;
 const timeFactor = 1;
 
 export const SolarBodiesImport = {
@@ -43,7 +43,8 @@ export const PlanetData: Record<string, PlanetDataType> = {
         name: "Venus",
         diameter: 6051.8*2/distanceFactor ,
         period: 224.70 * timeFactor, 
-        texture_path : "/textures/4k_venus_atmosphere.jpg",
+        texture_path : "/textures/8k_venus_surface.jpg",
+        texture_path1 : "/textures/4k_venus_atmosphere.jpg",
         orbit: {
             a: 1.08209  * Math.pow(10,8) / distanceFactor,
             e: 0.00676,
@@ -100,6 +101,7 @@ export const PlanetData: Record<string, PlanetDataType> = {
         diameter: 60268*2/distanceFactor,
         period: 10755.699* timeFactor, 
         texture_path : "/textures/8k_saturn.jpg",
+        texture_path_ring : "/textures/8k_saturn_ring_alpha.png",
         orbit: {
             a: 14.32041  * Math.pow(10,8) / distanceFactor,
             e: 0.0520,

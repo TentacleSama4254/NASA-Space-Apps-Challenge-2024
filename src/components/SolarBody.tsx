@@ -7,7 +7,7 @@ import { PlanetDataType, SatelliteProps } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
 import SaturnRing from './PlanetRing'; // Import the SaturnRing component
-
+import {SaturnRingProps} from './PlanetRing';
 const Planet: React.FC<PlanetDataType> = ({
   name,
   diameter,
@@ -27,6 +27,7 @@ const Planet: React.FC<PlanetDataType> = ({
 
   const planetRef = useRef() as any;
   const planetRef1 = useRef() as any;
+  const ringRef = useRef<THREE.Mesh>(null);
   const [isFocused, setIsFocused] = useState(false);
 
   const defaultOrbit = {
@@ -66,6 +67,7 @@ const Planet: React.FC<PlanetDataType> = ({
 
       planetRef.current.position.set(x, y, z);
       if (planetRef1) planetRef1.current?.position.set(x, y, z);
+      if (ringRef.current) ringRef.current.position.set(x, y, z);
     }
 
     if (focusedObject?.object === planetRef.current && !isFocused) {
@@ -102,19 +104,20 @@ const Planet: React.FC<PlanetDataType> = ({
         </mesh>
       )}
 
-{texture_path_ring && (
+      {/* {texture_path_ring && (
         <SaturnRing
+          ref={ringRef}
           texturePath={texture_path_ring}
           innerRadius={diameter * 100 * 2}
           outerRadius={diameter * 100 * 2.5}
           planetPosition={planetRef.current ? planetRef.current.position : new THREE.Vector3()}
         />
-      )}
+      )} */}
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(
-            child as React.ReactElement<SatelliteProps>,
+            child as React.ReactElement<SatelliteProps>|React.ReactElement<SaturnRingProps>,
             {
               planetPosition:
                 planetRef?.current?.position ?? new THREE.Vector3(10, 0, 0),
