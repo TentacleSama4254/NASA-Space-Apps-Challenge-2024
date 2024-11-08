@@ -7,7 +7,7 @@ import {
   calculateInitialPosition,
   calculateOrbitalPosition,
 } from "../utils/planetCalculations";
-import { useTrails } from "../context/Trails";
+// import { useTrails } from "../context/Trails";
 
 import Asteroid from "./Asteroid";
 import { KeplerSolve, propagate } from "../utils/planetCalculations";
@@ -33,7 +33,7 @@ const Revolution: React.FC<RevolutionProps> = ({
   heliocentric = true,
 }) => {
   const count = 1;
-  const { addTrailPoint } = useTrails();
+  // const { addTrailPoint } = useTrails();
 
   const planetsRef = useRef<(typeof InstancedRigidBodies | null)[] | null>(
     null
@@ -99,10 +99,10 @@ const Revolution: React.FC<RevolutionProps> = ({
 
       updatePosition(new Vector3(position.x, position.y, position.z));
       // console.log("planet", planet);
-      addTrailPoint(
-        (planet as any).userData.key,
-        new Vector3(position.x, position.y, position.z)
-      );
+      // addTrailPoint(
+      //   (planet as any).userData.key,
+      //   new Vector3(position.x, position.y, position.z)
+      // );
     });
   });
 
