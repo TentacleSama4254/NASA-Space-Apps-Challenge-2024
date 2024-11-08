@@ -15,7 +15,7 @@ const SaturnRing: React.FC<SaturnRingProps> = (
     }) => {
     const ringRef = useRef<THREE.Mesh>(null);
     const texture = useLoader(THREE.TextureLoader, texturePath);
-    const geometry = new THREE.RingGeometry(innerRadius, outerRadius, 64);
+    const geometry = new THREE.RingGeometry(innerRadius, outerRadius, 128);
     const v3 = new THREE.Vector3();
 
     for (let i = 0; i < geometry.attributes.position.count; i++) {

@@ -46,16 +46,28 @@ const PlanetLabel: React.FC<PlanetTagProps> = ({
       <div style={{ position: "relative" }} onClick={onClick}>
         <div
           style={{
-            width: "8px",
-            height: "8px",
-            backgroundColor: dotColor,
+            width: "10px", // Size of the outer ring
+            height: "10px", // Size of the outer ring
+            border: `1.7px solid ${dotColor}`, // Thin ring around the dot
             borderRadius: "50%",
             position: "absolute",
             left: 0,
             top: 0,
             transform: "translate(-50%, -50%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
-        ></div>
+        >
+          <div
+            style={{
+              width: "4px", // Smaller dot
+              height: "4px", // Smaller dot
+              backgroundColor: dotColor,
+              borderRadius: "50%",
+            }}
+          ></div>
+        </div>
         <span
           style={{
             marginLeft: "10px",
