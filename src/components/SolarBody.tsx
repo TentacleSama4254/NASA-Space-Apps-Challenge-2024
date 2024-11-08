@@ -8,6 +8,7 @@ import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
 import SaturnRing from './PlanetRing'; // Import the SaturnRing component
 import {SaturnRingProps} from './PlanetRing';import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
+import PlanetTag from "./PlanetTag";
 
 const Planet: React.FC<PlanetDataType> = ({
   name,
@@ -30,6 +31,9 @@ const Planet: React.FC<PlanetDataType> = ({
   const planetRef1 = useRef() as any;
   const ringRef = useRef<THREE.Mesh>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [tagOpacity, setTagOpacity] = useState(1); // State variable for tag opacity
+  const [planetPosition, setPlanetPosition] = useState([0, 0, 0]);
+
 
   const defaultOrbit = {
     a: 5000,
@@ -42,7 +46,7 @@ const Planet: React.FC<PlanetDataType> = ({
 
   const orbitalParams = orbit || defaultOrbit;
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     const elapsedTime = clock.getElapsedTime();
     planetRef.current
       ? ((planetRef.current as any).rotation.y = elapsedTime / 6)
@@ -67,6 +71,7 @@ const Planet: React.FC<PlanetDataType> = ({
       ];
 
       planetRef.current.position.set(x, y, z);
+      setPlanetPosition([x, y, z]);
       if (planetRef1) planetRef1.current?.position.set(x, y, z);
       if (ringRef.current) ringRef.current.position.set(x, y, z);
     }
@@ -75,6 +80,16 @@ const Planet: React.FC<PlanetDataType> = ({
       setIsFocused(true);
     } else if (focusedObject?.object !== planetRef.current && isFocused) {
       setIsFocused(false);
+    }
+
+    const distance = camera.position.distanceTo(planetRef.current.position);
+    // console.log("Distance between :", distance);
+    // Calculate opacity based on distance
+    if (distance < 1000) {
+      const newOpacity = Math.max(0, (distance - 500) / 500);
+      setTagOpacity(newOpacity);
+    } else {
+      setTagOpacity(1);
     }
   });
 
@@ -91,7 +106,7 @@ const Planet: React.FC<PlanetDataType> = ({
 
   return (
     <group>
-      <mesh ref={planetRef} onClick={handleFocus} userData={{diameter}}>
+      <mesh ref={planetRef} onClick={handleFocus} userData={{ diameter }}>
         <sphereGeometry args={[diameter * 100, 64, 64]} />
         <meshPhongMaterial map={planetMap} />
       </mesh>
@@ -109,20 +124,23 @@ const Planet: React.FC<PlanetDataType> = ({
         </mesh>
       )}
 
-      {/* {texture_path_ring && (
-        <SaturnRing
-          ref={ringRef}
-          texturePath={texture_path_ring}
-          innerRadius={diameter * 100 * 2}
-          outerRadius={diameter * 100 * 2.5}
-          planetPosition={planetRef.current ? planetRef.current.position : new THREE.Vector3()}
-        />
-      )} */}
+      <PlanetTag
+        position={planetPosition}
+        label={name}
+        imageUrl={texture_path??"/textures/8k_earth_daymap.jpg"}
+        opacity={tagOpacity}
+        onClick={() => handleFocus({ object: planetRef.current })} // Pass the onClick handler
+        occlude={globalRefs.filter(
+          (ref) => ref !== planetRef && ref !== planetRef1 
+        ).filter(ref => ref !== undefined)} // Pass the objects that should occlude the PlanetTag
+      />
 
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(
-            child as React.ReactElement<SatelliteProps>|React.ReactElement<SaturnRingProps>,
+            child as
+              | React.ReactElement<SatelliteProps>
+              | React.ReactElement<SaturnRingProps>,
             {
               planetPosition:
                 planetRef?.current?.position ?? new THREE.Vector3(10, 0, 0),

@@ -65,6 +65,7 @@ const PlanetTag: React.FC<PlanetTagProps> = ({
             top: "50%",
             transform: "translateY(-50%)",
             fontFamily: "'Space Mono', monospace", // Spacy font
+            userSelect: "none", // Make text unselectable
           }}
         >
           {label}
