@@ -15,6 +15,8 @@ import OrbitLine from "../context/OrbitLine"; // Import the new OrbitLine compon
 import { Html } from "@react-three/drei";
 import { PlanetData } from "../config/SolarBodiesImport";
 import PlanetTag from "./PlanetTag";
+import { globalRefs } from "../context/GlobalRefs"; 
+
 
 export const earthSize = PlanetData.earth.diameter *100 //10;
 
@@ -33,6 +35,9 @@ const Earth: React.FC<EarthProps> = ({
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
   const mesh = useRef<THREE.InstancedMesh>(null);
+  const cameraZoom = cameraContext
+    ? cameraContext.zoomLevel
+    : new THREE.Vector3();
 
   const [colourMap, normalMap, specularMap, cloudsMap, lightsMap] = useLoader(
     TextureLoader,
@@ -52,7 +57,8 @@ const Earth: React.FC<EarthProps> = ({
 
   const [isFocused, setIsFocused] = useState(false); // State variable to track focus state
   const [planetPosition, setPlanetPosition] = useState([0, 0, 0]);
-  
+  const [tagOpacity, setTagOpacity] = useState(1); // State variable for tag opacity
+
   const defaultOrbit = {
     a: 4000,
     e: 0.5,
@@ -103,6 +109,19 @@ const Earth: React.FC<EarthProps> = ({
       // HtmlRef.current.position.set(x, y, z);
       // console.log(HtmlRef.current);
       setPlanetPosition([x, y, z]);
+
+      // console.log("camera at :", camera.position);
+      // console.log("earth at :", earthRef.current.position);
+      const distance = camera.position.distanceTo(earthRef.current.position);
+      // console.log("Distance between :", distance);
+
+      // Calculate opacity based on distance
+      if (distance < 1000) {
+        const newOpacity = Math.max(0, (distance - 500) / 500);
+        setTagOpacity(newOpacity);
+      } else {
+        setTagOpacity(1);
+      }
     }
 
     // Update focus state
@@ -115,11 +134,16 @@ const Earth: React.FC<EarthProps> = ({
 
   useEffect(() => {
     console.log("Earth mounted");
-   
+    globalRefs.push(earthRef);
+    globalRefs.push(cloudRef);
+    globalRefs.push(lightsRef);
     handleFocus({ object: earthRef.current });
 
     return () => {
       console.log("Earth unmounted");
+      globalRefs.splice(globalRefs.indexOf(earthRef), 1);
+      globalRefs.splice(globalRefs.indexOf(cloudRef), 1);
+      globalRefs.splice(globalRefs.indexOf(lightsRef), 1);
       // Any cleanup code can go here
     };
   }, []);
@@ -173,6 +197,9 @@ const Earth: React.FC<EarthProps> = ({
         position={planetPosition}
         label="Earth"
         imageUrl="/textures/8k_earth_daymap.jpg"
+        opacity={tagOpacity}
+        onClick={() => handleFocus({ object: earthRef.current })} // Pass the onClick handler
+        occlude={globalRefs.filter(ref => ref !== earthRef && ref !== cloudRef && ref !== lightsRef)} // Pass the objects that should occlude the PlanetTag
       />
 
       {React.Children.map(children, (child) => {

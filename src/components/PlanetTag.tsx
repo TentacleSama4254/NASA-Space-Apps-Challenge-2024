@@ -7,32 +7,43 @@ interface PlanetTagProps {
   position: number[];
   label: string;
   imageUrl?: string;
+  opacity: number; // Add opacity prop
+  onClick?: () => void; // Add onClick prop
+  occlude?: any[]; // Add occlude prop
 }
 
-const PlanetTag: React.FC<PlanetTagProps> = ({ position, label, imageUrl }) => {
+const PlanetTag: React.FC<PlanetTagProps> = ({
+  position,
+  label,
+  imageUrl,
+  opacity,
+  onClick, // Destructure onClick prop
+  occlude, // Destructure occlude prop
+}) => {
   const HtmlRef = useRef<HTMLDivElement>(null);
   const [dotColor, setDotColor] = useState("turquoise");
 
-useEffect(() => {
-  if (imageUrl) {
-    extractColors(imageUrl)
+  useEffect(() => {
+    if (imageUrl) {
+      extractColors(imageUrl)
         .then((colors) => {
           console.log(colors);
-        if (colors.length > 0) {
-          setDotColor(colors[0].hex); // Set the most prominent color
-        }
-      })
-      .catch(console.error);
-  }
-}, [imageUrl]);
+          if (colors.length > 0) {
+            setDotColor(colors[0].hex); // Set the most prominent color
+          }
+        })
+        .catch(console.error);
+    }
+  }, [imageUrl]);
 
   return (
     <Html
       position={position ? new Vector3(...position) : undefined}
-      style={{ pointerEvents: "none" }}
+      style={{ pointerEvents: "auto", opacity }} // Apply opacity and enable pointer events
       ref={HtmlRef}
+      occlude={occlude} // Pass occlude prop to Html component
     >
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} onClick={onClick}>
         <div
           style={{
             width: "8px",

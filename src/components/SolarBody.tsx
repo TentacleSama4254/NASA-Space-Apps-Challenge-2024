@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { PlanetDataType, SatelliteProps } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
+import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
 
 const Planet: React.FC<PlanetDataType> = ({
   name,
@@ -73,18 +74,27 @@ const Planet: React.FC<PlanetDataType> = ({
 
   useEffect(() => {
     console.log(`${name} mounted`);
+    globalRefs.push(planetRef); // Add the planetRef to the globalRefs array
+    // console.log(globalRefs);
+
     // handleFocus({ object: planetRef.current });
 
     return () => {
       console.log(`${name} unmounted`);
+      globalRefs.splice(globalRefs.indexOf(planetRef), 1); // Remove the planetRef from the globalRefs array
     };
   }, []);
 
   return (
     <group>
-      <mesh ref={planetRef} onClick={handleFocus} userData={{diameter}}>
-        <sphereGeometry args={[diameter *100 //temp value, should be diameter
-          , 64, 64]} />
+      <mesh ref={planetRef} onClick={handleFocus} userData={{ diameter }}>
+        <sphereGeometry
+          args={[
+            diameter * 100, //temp value, should be diameter
+            64,
+            64,
+          ]}
+        />
         <meshPhongMaterial map={planetMap} />
       </mesh>
 
