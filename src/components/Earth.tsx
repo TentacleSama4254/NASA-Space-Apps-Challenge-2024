@@ -14,7 +14,7 @@ import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine"; // Import the new OrbitLine component
 import { Html } from "@react-three/drei";
 import { PlanetData } from "../config/SolarBodiesImport";
-import PlanetTag from "./PlanetTag";
+import PlanetLabel from "./PlanetLabel";
 import { globalRefs } from "../context/GlobalRefs"; 
 
 
@@ -193,13 +193,15 @@ const Earth: React.FC<EarthProps> = ({
           <meshStandardMaterial map={colourMap} normalMap={normalMap} />
         </mesh>
       </instancedMesh>
-      <PlanetTag
+      <PlanetLabel
         position={planetPosition}
         label="Earth"
         imageUrl="/textures/8k_earth_daymap.jpg"
         opacity={tagOpacity}
         onClick={() => handleFocus({ object: earthRef.current })} // Pass the onClick handler
-        occlude={globalRefs.filter(ref => ref !== earthRef && ref !== cloudRef && ref !== lightsRef)} // Pass the objects that should occlude the PlanetTag
+        occlude={globalRefs.filter(
+          (ref) => ref !== earthRef && ref !== cloudRef && ref !== lightsRef
+        )} // Pass the objects that should occlude the PlanetTag
       />
 
       {React.Children.map(children, (child) => {

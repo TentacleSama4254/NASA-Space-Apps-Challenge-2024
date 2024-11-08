@@ -12,7 +12,7 @@ interface PlanetTagProps {
   occlude?: any[]; // Add occlude prop
 }
 
-const PlanetTag: React.FC<PlanetTagProps> = ({
+const PlanetLabel: React.FC<PlanetTagProps> = ({
   position,
   label,
   imageUrl,
@@ -75,4 +75,4 @@ const PlanetTag: React.FC<PlanetTagProps> = ({
   );
 };
 
-export default PlanetTag;
+export default PlanetLabel;

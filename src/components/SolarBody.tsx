@@ -8,7 +8,7 @@ import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
 import SaturnRing from './PlanetRing'; // Import the SaturnRing component
 import {SaturnRingProps} from './PlanetRing';import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
-import PlanetTag from "./PlanetTag";
+import PlanetLabel from "./PlanetLabel";
 
 const Planet: React.FC<PlanetDataType> = ({
   name,
@@ -124,15 +124,15 @@ const Planet: React.FC<PlanetDataType> = ({
         </mesh>
       )}
 
-      <PlanetTag
+      <PlanetLabel
         position={planetPosition}
         label={name}
-        imageUrl={texture_path??"/textures/8k_earth_daymap.jpg"}
+        imageUrl={texture_path ?? "/textures/8k_earth_daymap.jpg"}
         opacity={tagOpacity}
         onClick={() => handleFocus({ object: planetRef.current })} // Pass the onClick handler
-        occlude={globalRefs.filter(
-          (ref) => ref !== planetRef && ref !== planetRef1 
-        ).filter(ref => ref !== undefined)} // Pass the objects that should occlude the PlanetTag
+        occlude={globalRefs
+          .filter((ref) => ref !== planetRef && ref !== planetRef1)
+          .filter((ref) => ref !== undefined)} // Pass the objects that should occlude the PlanetTag
       />
 
       {React.Children.map(children, (child) => {
