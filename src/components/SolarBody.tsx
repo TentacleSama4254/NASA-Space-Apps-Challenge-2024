@@ -7,7 +7,8 @@ import { PlanetDataType, SatelliteProps } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
 import SaturnRing from './PlanetRing'; // Import the SaturnRing component
-import {SaturnRingProps} from './PlanetRing';
+import {SaturnRingProps} from './PlanetRing';import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
+
 const Planet: React.FC<PlanetDataType> = ({
   name,
   diameter,
@@ -79,8 +80,12 @@ const Planet: React.FC<PlanetDataType> = ({
 
   useEffect(() => {
     console.log(`${name} mounted`);
+    globalRefs.push(planetRef); // Add the planetRef to the globalRefs array
+    // console.log(globalRefs);
+
     return () => {
       console.log(`${name} unmounted`);
+      globalRefs.splice(globalRefs.indexOf(planetRef), 1); // Remove the planetRef from the globalRefs array
     };
   }, []);
 
