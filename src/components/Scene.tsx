@@ -46,15 +46,7 @@ const Scene = () => {
         <SolarObj {...PlanetData.uranus}/>
         <SolarObj {...PlanetData.neptune}/>
       </Sun>
-      {/* <Moon /> */}
-      {/* <ExplosionProvider> */}
-      {/* <Sun /> */}
-      {/* <Earth /> */}
-      {/* <Earth2 /> */}
-      {/* <Asteroid /> */}
-      {/* <AsteroidField />  */}
-      {/* <Globe  /> */}
-      {/* <Test /> */}
+
       <Stars depth={150000} factor={696} saturation={124} />
       {/* </ExplosionProvider> */}
       {/* <Html position={[0, 0, 0]} style={{ pointerEvents: "none" }}>

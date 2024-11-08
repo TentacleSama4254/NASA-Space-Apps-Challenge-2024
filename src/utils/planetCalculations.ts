@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { SUN_RADIUS, SUN_MASS, SPAWN_RADIUS, GRAVITATIONAL_CONSTANT, SUN_OFFSET } from '../config/constants'
+import { SUN_RADIUS, SUN_MASS, SPAWN_RADIUS, GRAVITATIONAL_CONSTANT, SUN_OFFSET, SOLAR_MASS,SOLAR_GRAVITATIONAL_PARAMETER } from '../config/constants'
 import * as THREE from 'three';
 
 // Get random position either within the spawn radius or on the outside edge
@@ -94,6 +94,19 @@ export const KeplerSolve = (e:number, M:number) => {
   return E0;
 };
 
+export const calculateOrbitalPeriod = (semiMajorAxis: number): number => {
+  // Convert semi-major axis from AU to meters if necessary
+  const semiMajorAxisMeters = semiMajorAxis * 1.496e11; // Assuming input is in AU
+
+  // Calculate the orbital period in seconds
+  const periodSeconds = 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxisMeters, 3) / SOLAR_GRAVITATIONAL_PARAMETER);
+
+  // Convert the period to days
+  const periodDays = periodSeconds / (60 * 60 * 24);
+
+  return periodDays;
+};
+
 export const propagate = (
   clock: number,
   a: number,
@@ -104,17 +117,20 @@ export const propagate = (
   heliocentric = true,
   Period?: number
 ): THREE.Vector3 => {
-  const T = Period??120; // seconds AND DEPENDS ON THE ORBITAL PERIOD
+  const T = Period ?? 12; // seconds AND DEPENDS ON THE ORBITAL PERIOD
   const n = (2 * Math.PI) / T;
   const tau = 0; // time of pericenter passage
 
   const M = n * (clock - tau);
   const E = KeplerSolve(e, M);
   const cose = Math.cos(E);
+  const sine = Math.sin(E);
 
   const r = a * (1 - e * cose);
+  const v = Math.sqrt(GRAVITATIONAL_CONSTANT * SUN_MASS * (2 / r - 1 / a)); // Orbital speed using vis-viva equation
+
   const s_x = r * ((cose - e) / (1 - e * cose));
-  const s_y = r * ((Math.sqrt(1 - e ** 2) * Math.sin(E)) / (1 - e * cose));
+  const s_y = r * ((Math.sqrt(1 - e ** 2) * sine) / (1 - e * cose));
   const s_z = 0;
 
   // Apply rotations (pitch, yaw, roll)

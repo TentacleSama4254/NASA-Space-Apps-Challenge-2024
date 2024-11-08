@@ -49,7 +49,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
 
     const updateScale = () => {
       const zoomLevel = camera.position.length();
-      console.log("Zoom level:", zoomLevel);
+      // console.log("Zoom level:", zoomLevel);
       setZoomLevel(zoomLevel);
       const scaleKm = (zoomLevel / 1000).toFixed(2) + "km";
       const scaleAu = (zoomLevel / 149597870.7).toFixed(4) + "AU";

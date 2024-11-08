@@ -95,6 +95,7 @@ const Planet: React.FC<PlanetDataType> = ({
 
   useEffect(() => {
     console.log(`${name} mounted`);
+    console.log("period is ", period);
     globalRefs.push(planetRef); // Add the planetRef to the globalRefs array
     // console.log(globalRefs);
 
