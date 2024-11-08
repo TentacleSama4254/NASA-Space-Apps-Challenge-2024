@@ -7,6 +7,7 @@ import Scene from "./Scene";
 import ToolbarBubble from "./UI/Toolbar";
 import { Physics } from "@react-three/rapier";
 import '../index.css';
+import Loader from "./Loader";
 
 const App = () => (
   <div style={{ position: "relative", width: "100%", height: "100vh" }}>
@@ -28,14 +29,14 @@ const App = () => (
       <Physics gravity={[0, 0, 0]}>
         <Scene />
       </Physics>
- 
+
       <EffectComposer>
         <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
       </EffectComposer>
+    {/* <Loader /> */}
     </Canvas>
-  
-      <ToolbarBubble />
- 
+
+    <ToolbarBubble />
   </div>
 );
 
