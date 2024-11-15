@@ -4,11 +4,6 @@ import { useCamera } from "../context/Camera";
 import { TextureLoader } from "three";
 import * as THREE from "three";
 
-import EarthDayMap from "../assets/textures/8k_earth_daymap.jpg";
-import EarthNightMap from "../assets/textures/8k_earth_nightmap.jpg";
-import EarthCloudsMap from "../assets/textures/8k_earth_clouds.jpg";
-import EarthNormalMap from "../assets/textures/8k_earth_normal_map.jpg";
-import EarthSpecularMap from "../assets/textures/8k_earth_specular_map.jpg";
 import { OrbitalParams } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine"; // Import the new OrbitLine component
@@ -17,6 +12,11 @@ import { PlanetData } from "../config/SolarBodiesImport";
 import PlanetLabel from "./PlanetLabel";
 import { globalRefs } from "../context/GlobalRefs"; 
 
+const EarthDayMap = "/textures/8k_earth_daymap.jpg";
+const EarthNightMap = "/textures/8k_earth_nightmap.jpg";
+const EarthCloudsMap = "/textures/8k_earth_clouds.jpg";
+const EarthNormalMap = "/textures/8k_earth_normal_map.jpg";
+const EarthSpecularMap = "/textures/8k_earth_specular_map.jpg";
 
 export const earthSize = PlanetData.earth.diameter *100 //10;
 

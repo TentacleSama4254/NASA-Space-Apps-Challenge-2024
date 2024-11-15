@@ -7,10 +7,11 @@ import {
   calculateOrbitalPosition,
   propagate,
 } from "../utils/planetCalculations";
-import MoonMap from "./../assets/textures/8k_moon.jpg";
 import { earthSize } from "./Earth";
 import OrbitLine from "../context/OrbitLine"; // Import the OrbitLine component
 import { OrbitalParams, SatelliteProps } from "../types";
+
+const MoonMap = "./textures/8k_moon.jpg";
 
 const Satellite: React.FC<SatelliteProps> = ({
   planetPosition = new THREE.Vector3(0, 0, 0),
