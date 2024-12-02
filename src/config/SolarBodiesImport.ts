@@ -18,7 +18,7 @@ export const PlanetData: Record<string, PlanetDataType> = {
             inclination: 7.01,
             omega: 29.022,
             raan: 48.378,
-        }
+        },
     },
 
     venus : {

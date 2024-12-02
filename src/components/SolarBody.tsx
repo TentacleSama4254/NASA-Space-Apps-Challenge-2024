@@ -7,7 +7,8 @@ import { PlanetDataType, SatelliteProps } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine";
 import SaturnRing from './PlanetRing'; // Import the SaturnRing component
-import {SaturnRingProps} from './PlanetRing';import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
+import { SaturnRingProps } from './PlanetRing';
+import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
 import PlanetLabel from "./PlanetLabel";
 
 const Planet: React.FC<PlanetDataType> = ({

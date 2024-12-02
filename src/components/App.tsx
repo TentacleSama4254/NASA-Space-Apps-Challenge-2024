@@ -19,7 +19,7 @@ const App = () => (
         width: "100%",
         height: "100%",
       }}
-      camera={{ position: [0, 50, 150], far: 300000 }}
+      camera={{ position: [0, 50, 150], far: 600000 }}
     >
       <color attach="background" args={["black"]} />
       <ambientLight intensity={0} />
