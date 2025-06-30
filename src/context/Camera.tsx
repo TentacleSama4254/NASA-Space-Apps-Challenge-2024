@@ -144,31 +144,56 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   }, []);
 
   const transitioning = useRef(false);
+  const transitionStartPosition = useRef(new Vector3());
+  const transitionStartTarget = useRef(new Vector3());
+  const transitionProgress = useRef(0);
+  const transitionDuration = 1.5; // Duration in seconds
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (focusedObject) {
       const target = focusedObject.object.position.clone();
       // Desired camera position relative to the focused object
       const desiredPosition = target.clone().add(initialOffset.current);
 
       if (transitioning.current) {
-        camera.position.lerp(desiredPosition, 0.1);
-        if (camera.position.distanceToSquared(desiredPosition) < 0.01) {
+        // Smooth transition
+        transitionProgress.current += delta / transitionDuration;
+        
+        if (transitionProgress.current >= 1) {
+          // Transition complete
           transitioning.current = false;
-          camera.position.copy(desiredPosition);
+          transitionProgress.current = 1;
+        }
+
+        // Use easing function for smooth transition
+        const easeInOutCubic = (t: number): number => {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        };
+        
+        const easedProgress = easeInOutCubic(transitionProgress.current);
+
+        // Interpolate camera position
+        camera.position.lerpVectors(transitionStartPosition.current, desiredPosition, easedProgress);
+        
+        // Interpolate camera look-at target
+        const currentTarget = new Vector3().lerpVectors(transitionStartTarget.current, target, easedProgress);
+        camera.lookAt(currentTarget);
+
+        // Update controls if they exist
+        if (controls) {
+          controls.target.lerpVectors(transitionStartTarget.current, target, easedProgress);
+          controls.update();
         }
       } else {
-        // Keep the camera locked to the target without lag
+        // Normal tracking when not transitioning
         camera.position.copy(desiredPosition);
-      }
+        camera.lookAt(target);
 
-      // Ensure the camera is looking at the target position
-      camera.lookAt(target);
-
-      // Update controls if they exist
-      if (controls) {
-        controls.target.copy(target);
-        controls.update();
+        // Update controls if they exist
+        if (controls) {
+          controls.target.copy(target);
+          controls.update();
+        }
       }
 
       const distance = camera.position.distanceTo(target);
@@ -184,6 +209,19 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
     console.log("handleFocus", focusedObject, object.position, instanceId);
 
     if (instanceId !== undefined) {
+      // Store current camera state for smooth transition
+      transitionStartPosition.current.copy(camera.position);
+      if (controls) {
+        transitionStartTarget.current.copy(controls.target);
+      } else {
+        // If no controls, estimate current look-at target
+        const currentDirection = new Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+        transitionStartTarget.current.copy(camera.position).add(currentDirection.multiplyScalar(100));
+      }
+      
+      // Reset transition progress
+      transitionProgress.current = 0;
+      
       setFocusedObject({ object, instanceId });
 
       // Calculate and store the initial offset between the camera and the target
@@ -202,6 +240,8 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       spherical.phi -= 0.05; // Adjust this value for the desired rotation
       spherical.makeSafe();
       initialOffset.current.setFromSpherical(spherical);
+      
+      // Start the transition
       transitioning.current = true;
     }
   };
