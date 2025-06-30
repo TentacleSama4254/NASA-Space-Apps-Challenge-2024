@@ -164,7 +164,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       }
 
       const distance = camera.position.distanceTo(target);
-      // console.log("Distance:", distance, '\nCamera : ', camera.position, '\nCam target : ', cameraTarget.current, '\nTarget : ', target, '\nrelative pos : ', camera.position.clone().sub(target));
+      console.log("Distance:", distance, '\nCamera : ', camera.position, '\nCam target : ', cameraTarget.current, '\nTarget : ', target, '\nrelative pos : ', camera.position.clone().sub(target));
     }
   });
 

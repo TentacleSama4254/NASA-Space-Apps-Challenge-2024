@@ -28,6 +28,7 @@ const Asteroid: React.FC<AsteroidProps> = ({
   const asteroidRef = useRef<THREE.Group>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [asteroidPosition, setAsteroidPosition] = useState([0, 0, 0]);
+  const [opacity, setOpacity] = useState(0.12); // State for opacity
 
   const defaultOrbit = {
     a: Math.random() * 400 + 150,
@@ -39,9 +40,8 @@ const Asteroid: React.FC<AsteroidProps> = ({
   };
 
   const orbitalParams = orbit || defaultOrbit;
-  // const orbitalParams = orbit || defaultOrbit;
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera }) => {
     const elapsedTime = clock.getElapsedTime();
 
     if (asteroidRef.current) {
@@ -64,6 +64,20 @@ const Asteroid: React.FC<AsteroidProps> = ({
 
       asteroidRef.current.position.set(x, y, z);
       setAsteroidPosition([x, y, z]);
+
+      // Calculate the distance to the camera
+      const distance = cameraContext?.focusedObject 
+        ? camera.position.distanceTo(cameraContext.focusedObject.object.position) 
+        : camera.position.distanceTo(asteroidRef.current.position);
+      console.log("Distance to focused object: ", distance);
+
+      // Adjust opacity based on distance 
+      // if the planet is zoomed into the asteroids dissapperar, the occuldion feature produces too much prcoesing power for all the asteroids
+      if (distance < 100) {
+        setOpacity(0); // 100% transparent when closer than 100 units
+      } else {
+        setOpacity(0.12); // Default opacity
+      }
     }
 
     if (focusedObject?.object === asteroidRef.current && !isFocused) {
@@ -75,22 +89,19 @@ const Asteroid: React.FC<AsteroidProps> = ({
 
   useEffect(() => {
     console.log(`${name} mounted`);
-    // globalRefs.push(asteroidRef);
+    globalRefs.push(asteroidRef);
     console.log("Asteroid rendered: ", asteroidPosition);
-    console.log(globalRefs);
 
     return () => {
       console.log(`${name} unmounted`);
-      // globalRefs.splice(globalRefs.indexOf(asteroidRef), 1);
     };
   }, []);
-
 
   return (
     <group ref={asteroidRef} onClick={handleFocus}>
       <Html center
         onClick={handleFocus}
-        occlude={true}
+        // occlude={true}
         // onOcclude={(hidden: boolean) => {
         // console.log("Asteroid occluded: ", hidden);
         // }}
