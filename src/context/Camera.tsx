@@ -146,13 +146,11 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   useFrame(() => {
     if (focusedObject) {
       const target = focusedObject.object.position.clone();
-      const smoothness = 0.1; // Adjust this value for smoother or faster interpolation
-
-      // Calculate the desired camera position with the initial offset
+      // Desired camera position relative to the focused object
       const desiredPosition = target.clone().add(initialOffset.current);
 
-      // Smoothly interpolate the camera's position towards the desired position
-      camera.position.lerp(desiredPosition, smoothness);
+      // Keep the camera locked to the target without lag
+      camera.position.copy(desiredPosition);
 
       // Ensure the camera is looking at the target position
       camera.lookAt(target);
