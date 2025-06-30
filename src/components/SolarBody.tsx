@@ -109,13 +109,13 @@ const Planet: React.FC<PlanetDataType> = ({
   return (
     <group>
       <mesh ref={planetRef} onClick={handleFocus} userData={{ diameter }}>
-        <sphereGeometry args={[diameter * 100, 64, 64]} />
+        <sphereGeometry args={[diameter / 2, 64, 64]} />
         <meshPhongMaterial map={planetMap} />
       </mesh>
 
       {texture_path1 && (
         <mesh ref={planetRef1} onClick={handleFocus} userData={{ diameter }}>
-          <sphereGeometry args={[diameter * 100, 64, 64]} />
+          <sphereGeometry args={[diameter / 2, 64, 64]} />
           <meshPhongMaterial
             map={useLoader(TextureLoader, [texture_path1])[0]}
             opacity={1}

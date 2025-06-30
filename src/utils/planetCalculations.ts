@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { SUN_RADIUS, SUN_MASS, SPAWN_RADIUS, GRAVITATIONAL_CONSTANT, SUN_OFFSET, SOLAR_MASS,SOLAR_GRAVITATIONAL_PARAMETER } from '../config/constants'
+import { SUN_RADIUS, SUN_MASS, SPAWN_RADIUS, GRAVITATIONAL_CONSTANT, SUN_OFFSET, SOLAR_MASS, SOLAR_GRAVITATIONAL_PARAMETER, SOLAR_GRAVITATIONAL_PARAMETER_KM } from '../config/constants'
 import * as THREE from 'three';
 
 // Get random position either within the spawn radius or on the outside edge
@@ -127,17 +127,19 @@ export const propagate = (
   const sine = Math.sin(E);
 
   const r = a * (1 - e * cose);
-  const v = Math.sqrt(GRAVITATIONAL_CONSTANT * SUN_MASS * (2 / r - 1 / a)); // Orbital speed using vis-viva equation
-
-  const s_x = r * ((cose - e) / (1 - e * cose));
-  const s_y = r * ((Math.sqrt(1 - e ** 2) * sine) / (1 - e * cose));
+  // position in orbital plane (km)
+  const s_x = a * (cose - e);
+  const s_y = a * Math.sqrt(1 - e * e) * sine;
   const s_z = 0;
 
-  // Apply rotations (pitch, yaw, roll)
-  const point = heliocentric? new THREE.Vector3(s_x, s_y, s_z).add(SUN_OFFSET): new THREE.Vector3(s_x, s_y, s_z);
-  point.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(0)); // Yaw
-  point.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(inclination)); // Pitch
-  point.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(0) + THREE.MathUtils.degToRad(90)); // Roll
+  const point = new THREE.Vector3(s_x, s_y, s_z);
+  // Apply orbital orientation
+  point.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(omega));
+  point.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(inclination));
+  point.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(raan));
+  if (heliocentric) {
+    point.add(SUN_OFFSET);
+  }
 
   return point;
 };

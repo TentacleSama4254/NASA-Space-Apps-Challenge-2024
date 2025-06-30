@@ -18,7 +18,7 @@ const EarthCloudsMap = "/textures/8k_earth_clouds.jpg";
 const EarthNormalMap = "/textures/8k_earth_normal_map.jpg";
 const EarthSpecularMap = "/textures/8k_earth_specular_map.jpg";
 
-export const earthSize = PlanetData.earth.diameter *100 //10;
+export const earthSize = PlanetData.earth.diameter / 2;
 
 interface EarthProps {
   children?: React.ReactNode;

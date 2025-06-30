@@ -12,7 +12,7 @@ import SaturnRing from "./PlanetRing";
 import SolarObj from "./SolarBody";
 // import AsteroidField from "./AsteroidField";
 import AxesHelper from "../utils/AxesHelper";
-import { PlanetData , distanceFactor} from "../config/SolarBodiesImport";
+import { PlanetData , distanceScaleKm } from "../config/SolarBodiesImport";
 import { useContext, useEffect, useState } from "react";
 import { AsteroidData } from "../assets/asteroid_api_data";
 
@@ -60,8 +60,8 @@ const Scene = () => {
           texturePath={"https://i.postimg.cc/zz7Gr430/saturn-rings-top.png"}
           // innerRadius={PlanetData.saturn.diameter * 100 * 2}
           // outerRadius={PlanetData.saturn.diameter * 100 * 3}
-          innerRadius = {160000/distanceFactor *100}
-          outerRadius = {320000/distanceFactor *100}
+          innerRadius = {160000/distanceScaleKm}
+          outerRadius = {320000/distanceScaleKm}
         />
           </SolarObj>
         <SolarObj {...PlanetData.uranus}/>

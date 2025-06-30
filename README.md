@@ -27,6 +27,7 @@ ASTEREORRY offers a **3D, web-based interactive orrery** that models the Solar S
 - **Scaling**: All planets are scaled with respect to the Earth, with their distances from the Sun based on AU (Astronomical Units).
 - **3D Interaction**: The orbits of near-Earth asteroids are represented with clickable CAD models, and users can zoom in/out to explore asteroid paths.
 - **Real-time Data**: The asteroid data is dynamically imported from NASA’s API to display accurate Near-Earth Object information.
+- **Planetary Ephemerides**: Planet positions can be fetched from the [JPL HORIZONS API](https://ssd.jpl.nasa.gov/api/horizons.api) to drive the real scale orbits.
 - **User-Friendly Controls**: Designed for ease of use, with intuitive controls for younger audiences to explore space.
 
 ---
