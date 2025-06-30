@@ -133,11 +133,11 @@ export const propagate = (
   const s_z = 0;
 
   const point = new THREE.Vector3(s_x, s_y, s_z);
-  // Orient to the proper plane (Y-up in three.js)
-  point.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));
+  // Classical orientation: RAAN -> inclination -> argument of periapsis
+  point.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(raan));
   point.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(inclination));
-  point.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(omega));
-  // Rotate base XY plane to XZ so orbits appear horizontal
+  point.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(omega));
+  // Rotate from Z-up to Y-up so orbits appear horizontal in three.js
   point.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-90));
   if (heliocentric) {
     point.add(SUN_OFFSET);

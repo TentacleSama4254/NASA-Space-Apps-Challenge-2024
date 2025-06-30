@@ -143,14 +143,24 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
     };
   }, []);
 
+  const transitioning = useRef(false);
+
   useFrame(() => {
     if (focusedObject) {
       const target = focusedObject.object.position.clone();
       // Desired camera position relative to the focused object
       const desiredPosition = target.clone().add(initialOffset.current);
 
-      // Keep the camera locked to the target without lag
-      camera.position.copy(desiredPosition);
+      if (transitioning.current) {
+        camera.position.lerp(desiredPosition, 0.1);
+        if (camera.position.distanceToSquared(desiredPosition) < 0.01) {
+          transitioning.current = false;
+          camera.position.copy(desiredPosition);
+        }
+      } else {
+        // Keep the camera locked to the target without lag
+        camera.position.copy(desiredPosition);
+      }
 
       // Ensure the camera is looking at the target position
       camera.lookAt(target);
@@ -192,6 +202,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       spherical.phi -= 0.05; // Adjust this value for the desired rotation
       spherical.makeSafe();
       initialOffset.current.setFromSpherical(spherical);
+      transitioning.current = true;
     }
   };
 
