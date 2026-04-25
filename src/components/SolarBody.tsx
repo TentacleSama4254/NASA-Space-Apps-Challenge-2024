@@ -1,15 +1,53 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
-import { useCamera } from "../context/Camera";
-import { TextureLoader } from "three";
-import * as THREE from "three";
-import { PlanetDataType, SatelliteProps } from "../types";
-import { propagate } from "../utils/planetCalculations";
-import OrbitLine from "../context/OrbitLine";
-import SaturnRing from './PlanetRing'; // Import the SaturnRing component
+import React, { useEffect, useRef, useState, Suspense } from 'react';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { TextureLoader } from 'three';
+import * as THREE from 'three';
+import { PlanetDataType, SatelliteProps } from '../types';
+import { propagate } from '../utils/planetCalculations';
+import OrbitLine from '../context/OrbitLine';
 import { SaturnRingProps } from './PlanetRing';
-import { globalRefs } from "../context/GlobalRefs"; // Import the globalRefs array
-import PlanetLabel from "./PlanetLabel";
+import { globalRefs } from '../context/GlobalRefs';
+import PlanetLabel from './PlanetLabel';
+import { BODIES } from '../domain/bodyRegistry';
+import { getBodyPosition } from '../domain/ephemerisService';
+import { useSimClock } from '../context/SimulationClock';
+import { J2000_UNIX_MS, SUN_OFFSET } from '../config/constants';
+
+// ─── Geometry detail thresholds ───────────────────────────────────────────────
+
+/** Camera distance below which high-res geometry segments are used. */
+const CLOSE_DISTANCE = 600;
+
+function segmentCount(distToCamera: number): number {
+  if (distToCamera < CLOSE_DISTANCE) return 64;
+  if (distToCamera < 3000) return 32;
+  return 16;
+}
+
+// ─── Venus atmosphere overlay (separate component to avoid conditional hook) ──
+
+interface AtmosphereProps {
+  texturePath: string;
+  diameter: number;
+  meshRef: React.RefObject<THREE.Mesh | null>;
+}
+
+const AtmosphereLayer: React.FC<AtmosphereProps> = ({ texturePath, diameter, meshRef }) => {
+  const [map] = useLoader(TextureLoader, [texturePath]);
+  return (
+    <mesh ref={meshRef as React.RefObject<THREE.Mesh>}>
+      <sphereGeometry args={[diameter / 2, 32, 32]} />
+      <meshPhongMaterial
+        map={map}
+        transparent
+        depthWrite={true}
+        blending={THREE.AdditiveBlending}
+      />
+    </mesh>
+  );
+};
+
+// ─── Main planet component ────────────────────────────────────────────────────
 
 const Planet: React.FC<PlanetDataType> = ({
   name,
@@ -17,128 +55,132 @@ const Planet: React.FC<PlanetDataType> = ({
   orbit,
   texture_path,
   texture_path1,
-  texture_path_ring,
   children,
   period,
   centrePosition = new THREE.Vector3(0, 0, 0),
 }) => {
-  const cameraContext = useCamera();
-  const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
-  const focusedObject = cameraContext ? cameraContext.focusedObject : null;
+  const simClock = useSimClock();
+  const cameraRef = useRef<THREE.Camera | null>(null);
 
-  const [planetMap, secondaryMap] = useLoader(TextureLoader, [
-    texture_path,
-    texture_path1 || texture_path,
-  ]);
+  // Look up the body definition for registry-driven data.
+  const bodyId = name.toLowerCase();
+  const bodyDef = BODIES[bodyId];
+  const labelColor = bodyDef?.labelColor ?? 'turquoise';
 
-  const planetRef = useRef<THREE.Mesh | null>(null);
-  const planetRef1 = useRef<THREE.Mesh | null>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  // Always load the base texture unconditionally (no conditional hooks).
+  const textureSrc = bodyDef?.textures.low ?? texture_path ?? '/textures/8k_mercury.jpg';
+  const [planetMap] = useLoader(TextureLoader, [textureSrc]);
+
+  const planetRef = useRef<THREE.Mesh>(null);
+  const atmosphereRef = useRef<THREE.Mesh>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [tagOpacity, setTagOpacity] = useState(1); // State variable for tag opacity
+  const [tagOpacity, setTagOpacity] = useState(1);
   const [planetPosition, setPlanetPosition] = useState([0, 0, 0]);
-
+  const [segments, setSegments] = useState(16);
 
   const defaultOrbit = {
     a: 5000,
     e: 0.5,
-    inclination: THREE.MathUtils.degToRad(0),
-    omega: THREE.MathUtils.degToRad(0),
-    raan: THREE.MathUtils.degToRad(0),
+    inclination: 0,
+    omega: 0,
+    raan: 0,
     q: 10,
   };
+  const orbitalParams = orbit ?? defaultOrbit;
 
-  const orbitalParams = orbit || defaultOrbit;
+  // Keplerian fallback clock offset for ma0-corrected mean anomaly.
+  const keplerian = bodyDef?.keplerianElements;
+  const periodDays = bodyDef?.periodDays ?? (period ?? 365);
+  const periodSec = periodDays * 86400;
+  const ma0Deg = keplerian?.ma0 ?? 0;
 
-  useFrame(({ clock, camera }) => {
-    const elapsedTime = clock.getElapsedTime();
-    if (!planetRef.current) {
-      return;
-    }
-    planetRef.current.rotation.y = elapsedTime / 6;
+  useFrame(({ clock: r3fClock, camera }) => {
+    if (!planetRef.current) return;
 
-    const position = propagate(
-      elapsedTime,
-      orbitalParams.a,
-      orbitalParams.e,
-      orbitalParams.inclination,
-      orbitalParams.omega,
-      orbitalParams.raan,
-      false,
-      period
-    );
+    cameraRef.current = camera;
 
-    const [x, y, z] = [
-      centrePosition.x + position.x,
-      centrePosition.y + position.y,
-      centrePosition.z + position.z,
-    ];
+    // ── Simulation time ──────────────────────────────────────────────────────
+    const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
 
-    planetRef.current.position.set(x, y, z);
-    setPlanetPosition([x, y, z]);
-    if (planetRef1) planetRef1.current?.position.set(x, y, z);
-    if (ringRef.current) ringRef.current.position.set(x, y, z);
+    // ── Position (ephemeris → fallback Keplerian) ────────────────────────────
+    const ephemerisPos = getBodyPosition(bodyId, simTimeMs);
 
-    if (focusedObject?.object === planetRef.current && !isFocused) {
-      setIsFocused(true);
-    } else if (focusedObject?.object !== planetRef.current && isFocused) {
-      setIsFocused(false);
-    }
-
-    const distance = camera.position.distanceTo(planetRef.current.position);
-    // console.log("Distance between :", distance);
-    // Calculate opacity based on distance
-    if (distance < 1000) {
-      const newOpacity = Math.max(0, (distance - 500) / 500);
-      setTagOpacity(newOpacity);
+    if (ephemerisPos) {
+      planetRef.current.position.copy(ephemerisPos);
+      atmosphereRef.current?.position.copy(ephemerisPos);
     } else {
-      setTagOpacity(1);
+      // Fallback: Keplerian propagation from J2000 epoch with ma0 offset.
+      const secFromJ2000 = (simTimeMs - J2000_UNIX_MS) / 1000;
+      const ma0OffsetSec = (ma0Deg / 360) * periodSec;
+      const kepClock = secFromJ2000 + ma0OffsetSec;
+
+      const pos = propagate(
+        kepClock,
+        orbitalParams.a,
+        orbitalParams.e,
+        orbitalParams.inclination,
+        orbitalParams.omega,
+        orbitalParams.raan,
+        false,
+        periodSec,
+      );
+      const absPos = new THREE.Vector3(
+        centrePosition.x + pos.x,
+        centrePosition.y + pos.y,
+        centrePosition.z + pos.z,
+      );
+      planetRef.current.position.copy(absPos);
+      atmosphereRef.current?.position.copy(absPos);
     }
+
+    // ── Self-rotation (use real elapsed time for smooth spin) ────────────────
+    planetRef.current.rotation.y = r3fClock.getElapsedTime() / 6;
+
+    // ── Camera distance → label opacity + geometry LOD ───────────────────────
+    const dist = camera.position.distanceTo(planetRef.current.position);
+    setTagOpacity(dist < 1000 ? Math.max(0, (dist - 500) / 500) : 1);
+    const newSegs = segmentCount(dist);
+    if (newSegs !== segments) setSegments(newSegs);
+
+    setPlanetPosition(planetRef.current.position.toArray());
   });
 
   useEffect(() => {
-    console.log(`${name} mounted`);
-    console.log("period is ", period);
-    globalRefs.push(planetRef); // Add the planetRef to the globalRefs array
-    // console.log(globalRefs);
-
+    globalRefs.push(planetRef);
     return () => {
-      console.log(`${name} unmounted`);
-      globalRefs.splice(globalRefs.indexOf(planetRef), 1); // Remove the planetRef from the globalRefs array
+      globalRefs.splice(globalRefs.indexOf(planetRef), 1);
     };
   }, []);
 
   return (
     <group>
-      <mesh ref={planetRef} onClick={handleFocus} userData={{ diameter }}>
-        <sphereGeometry args={[diameter / 2, 64, 64]} />
+      <mesh ref={planetRef} userData={{ diameter }}>
+        <sphereGeometry args={[diameter / 2, segments, segments]} />
         <meshPhongMaterial map={planetMap} />
       </mesh>
 
+      {/* Venus atmosphere overlay — always rendered via a stable sub-component */}
       {texture_path1 && (
-        <mesh ref={planetRef1} onClick={handleFocus} userData={{ diameter }}>
-          <sphereGeometry args={[diameter / 2, 64, 64]} />
-          <meshPhongMaterial
-            map={secondaryMap}
-            opacity={1}
-            depthWrite={true}
-            transparent={true}
-            blending={2}
+        <Suspense fallback={null}>
+          <AtmosphereLayer
+            texturePath={texture_path1}
+            diameter={diameter}
+            meshRef={atmosphereRef}
           />
-        </mesh>
+        </Suspense>
       )}
 
       <PlanetLabel
         position={planetPosition}
         label={name}
-        imageUrl={texture_path ?? "/textures/8k_earth_daymap.jpg"}
+        dotColor={labelColor}
         opacity={tagOpacity}
-        onClick={() => handleFocus({ object: planetRef.current })} // Pass the onClick handler
         occlude={globalRefs
-          .filter((ref) => ref !== planetRef && ref !== planetRef1)
-          .filter((ref) => ref !== undefined)} // Pass the objects that should occlude the PlanetTag
+          .filter((ref) => ref !== planetRef && ref !== atmosphereRef)
+          .filter(Boolean)}
       />
 
+      {/* Pass the current mesh position down to child components (rings, moons) */}
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(
@@ -146,9 +188,8 @@ const Planet: React.FC<PlanetDataType> = ({
               | React.ReactElement<SatelliteProps>
               | React.ReactElement<SaturnRingProps>,
             {
-              planetPosition:
-                planetRef?.current?.position ?? new THREE.Vector3(10, 0, 0),
-            }
+              planetPosition: planetRef.current?.position ?? new THREE.Vector3(),
+            },
           );
         }
         return child;
@@ -159,6 +200,8 @@ const Planet: React.FC<PlanetDataType> = ({
         centrePosition={centrePosition}
         planetRef={planetRef}
         isFocused={isFocused}
+        periodDays={periodDays}
+        bodyId={bodyId}
       />
     </group>
   );

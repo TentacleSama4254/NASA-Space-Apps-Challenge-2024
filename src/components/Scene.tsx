@@ -1,84 +1,96 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Html, Stars } from "@react-three/drei";
+import { Stars } from '@react-three/drei';
+import { useEffect } from 'react';
 import * as THREE from 'three';
-import { CameraProvider, CameraContext } from "../context/Camera";
-import Earth from "./Earth";
-import Sun from "./Sun";
-import Revolution from "./Revolution";
-import Moon from "./Moon";
-import Asteroid, { AsteroidProps } from "./Asteroid";
-import ScaleBar from "./Scale-Bar";
-import SaturnRing from "./PlanetRing";
-import SolarObj from "./SolarBody";
-// import AsteroidField from "./AsteroidField";
-import AxesHelper from "../utils/AxesHelper";
-import { PlanetData , distanceScaleKm } from "../config/SolarBodiesImport";
-import { useContext, useEffect, useState } from "react";
-import { AsteroidData } from "../assets/asteroid_api_data";
+import { CameraProvider } from '../context/Camera';
+import Earth from './Earth';
+import Sun from './Sun';
+import Moon from './Moon';
+import Asteroid, { AsteroidProps } from './Asteroid';
+import SaturnRing from './PlanetRing';
+import SolarObj from './SolarBody';
+import { PlanetData, distanceScaleKm } from '../config/SolarBodiesImport';
+import { AsteroidData } from '../assets/asteroid_api_data';
+import { preloadEphemeris } from '../domain/ephemerisService';
 
-// Scene component
-const Scene = () => {
-  // Custom hook for gravity logic
-  // useGravity();
-  const [asteroids, setAsteroids] = useState<AsteroidProps[]>([]);
+// ─── Asteroid belt sample ─────────────────────────────────────────────────────
 
-  useEffect(() => {
-    // Parse the JSON data and set the asteroids state
-    const parsedAsteroids = AsteroidData.map((data, index) => ({
-      name: `Asteroid ${index + 1}`,
-      diameter: 0.1, // Example diameter
+/**
+ * Build asteroid props from the JPL SBDB catalog fields.
+ * We use the first N entries that have all required orbital fields.
+ */
+function buildAsteroidProps(limit: number): AsteroidProps[] {
+  const props: AsteroidProps[] = [];
+  for (const d of AsteroidData) {
+    if (props.length >= limit) break;
+
+    const a     = Number(d.a);
+    const e     = Number(d.e);
+    const i     = Number(d.i);
+    const om    = Number(d.om);
+    const w     = Number(d.w);
+    const ma    = Number(d.ma);
+    const per   = Number(d.per);
+    const epoch = Number(d.epoch);
+
+    // Skip entries with missing or clearly invalid orbital elements.
+    if (!a || !isFinite(a) || !isFinite(e) || e >= 1) continue;
+    if (!isFinite(i) || !isFinite(om) || !isFinite(w) || !isFinite(ma)) continue;
+    if (!isFinite(per) || per <= 0 || !isFinite(epoch)) continue;
+
+    props.push({
+      name: String(d.name ?? d.full_name ?? `Asteroid ${props.length + 1}`),
+      diameter: Number(d.diameter) || 1,
       orbit: {
-        a: Math.random() * 1500 + 100*index,
-        e: Math.random(),
-        inclination: THREE.MathUtils.degToRad(0),
-        omega: THREE.MathUtils.degToRad(0),
-        raan: THREE.MathUtils.degToRad(0),
-        q: 10,
+        aAU:     a,
+        e,
+        i,
+        om,
+        w,
+        ma,
+        epochJd: epoch,
       },
-      period: 365, // Example period
-    }));
-    setAsteroids(parsedAsteroids);
-  }, []);
+      periodDays: per,
+    });
+  }
+  return props;
+}
 
-  const cameraContext = useContext(CameraContext);
-  const scaleTextKm = cameraContext?.scaleTextKm ?? '---';
-  const scaleTextAu = cameraContext?.scaleTextAu ?? 'HELLO';
+const ASTEROID_SAMPLE = buildAsteroidProps(30);
+
+// ─── Scene ────────────────────────────────────────────────────────────────────
+
+const Scene = () => {
+  // Start loading all ephemeris JSON files as soon as the scene mounts.
+  useEffect(() => {
+    preloadEphemeris();
+  }, []);
 
   return (
     <CameraProvider>
-      {/* <AxesHelper /> */}
       <Sun>
-        <SolarObj {...PlanetData.mercury}/>
-        <SolarObj {...PlanetData.venus}/>
+        <SolarObj {...PlanetData.mercury} />
+        <SolarObj {...PlanetData.venus} />
         <Earth orbit={PlanetData.earth.orbit}>
           <Moon />
         </Earth>
-        <SolarObj {...PlanetData.mars}/>
-        <SolarObj {...PlanetData.jupiter}/>
+        <SolarObj {...PlanetData.mars} />
+        <SolarObj {...PlanetData.jupiter} />
         <SolarObj {...PlanetData.saturn}>
           <SaturnRing
-          texturePath={"https://i.postimg.cc/zz7Gr430/saturn-rings-top.png"}
-          // innerRadius={PlanetData.saturn.diameter * 100 * 2}
-          // outerRadius={PlanetData.saturn.diameter * 100 * 3}
-          innerRadius = {160000/distanceScaleKm}
-          outerRadius = {320000/distanceScaleKm}
-        />
-          </SolarObj>
-        <SolarObj {...PlanetData.uranus}/>
-        <SolarObj {...PlanetData.neptune}/>
+            texturePath="https://i.postimg.cc/zz7Gr430/saturn-rings-top.png"
+            innerRadius={160000 / distanceScaleKm}
+            outerRadius={320000 / distanceScaleKm}
+          />
+        </SolarObj>
+        <SolarObj {...PlanetData.uranus} />
+        <SolarObj {...PlanetData.neptune} />
       </Sun>
 
-      {asteroids.slice(0,30).map((props, index) => (
-        <Asteroid key={index} {...props} />
+      {ASTEROID_SAMPLE.map((props, i) => (
+        <Asteroid key={`${props.name}-${i}`} {...props} />
       ))}
-      {/* <ExplosionProvider> */}
 
       <Stars depth={150000} factor={696} saturation={124} />
-      {/* </ExplosionProvider> */}
-      {/* <Html position={[0, 0, 0]} style={{ pointerEvents: "none" }}>
-        <ScaleBar scaleTextKm={scaleTextKm} scaleTextAu={scaleTextAu} padding_bottom={10} padding_left={10} />
-      </Html> */}
-      {/* <Stars depth={100000} factor={696} saturation={124} /> */}
     </CameraProvider>
   );
 };

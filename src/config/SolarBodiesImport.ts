@@ -1,9 +1,10 @@
 
 import { TextureLoader } from "three";
 import { PlanetDataType } from "../types/SolarBodies";
+import { DISTANCE_SCALE_KM } from "./constants";
 
-// scale factor converting kilometres to scene units
-export const distanceScaleKm = 1e5;
+// Re-export canonical constant under the legacy camelCase name.
+export const distanceScaleKm = DISTANCE_SCALE_KM;
 const timeFactor = 1;
 
 export const PlanetData: Record<string, PlanetDataType> = {

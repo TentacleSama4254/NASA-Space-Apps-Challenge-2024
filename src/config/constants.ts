@@ -3,6 +3,12 @@ import * as THREE from "three"
 export const GRAVITATIONAL_CONSTANT = 6.67430e-11
 export const SCALE_FACTOR = 0.0001
 
+/** Converts kilometres to scene units: 1 scene unit = 100 000 km */
+export const DISTANCE_SCALE_KM = 1e5;
+
+/** Unix milliseconds for the J2000.0 epoch (2000-Jan-01 12:00:00 TT ≈ UTC) */
+export const J2000_UNIX_MS = 946728000000;
+
 export const SPAWN_RADIUS = 250
 
 export const SUN_RADIUS = 30

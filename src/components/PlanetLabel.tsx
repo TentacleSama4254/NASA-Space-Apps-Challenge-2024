@@ -1,83 +1,84 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Html } from "@react-three/drei";
-import { Vector3 } from "three";
-import { extractColors } from "extract-colors";
+/**
+ * PlanetLabel
+ *
+ * Renders a small coloured ring + dot + name tag above each planet.
+ * The dot colour is supplied directly from the body registry (dotColor prop)
+ * to avoid the expensive runtime extractColors() call that previously fetched
+ * and decoded the full planet texture just to pick a colour.
+ */
 
-interface PlanetTagProps {
+import React, { useRef } from 'react';
+import { Html } from '@react-three/drei';
+import { Vector3 } from 'three';
+import * as THREE from 'three';
+
+interface PlanetLabelProps {
   position: number[];
   label: string;
-  imageUrl?: string;
-  opacity: number; // Add opacity prop
-  onClick?: () => void; // Add onClick prop
-  occlude?: any[]; // Add occlude prop
+  /** Pre-computed hex color string from the body registry. */
+  dotColor: string;
+  opacity: number;
+  onClick?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  occlude?: any[];
 }
 
-const PlanetLabel: React.FC<PlanetTagProps> = ({
+const PlanetLabel: React.FC<PlanetLabelProps> = ({
   position,
   label,
-  imageUrl,
+  dotColor,
   opacity,
-  onClick, // Destructure onClick prop
-  occlude, // Destructure occlude prop
+  onClick,
+  occlude,
 }) => {
-  const HtmlRef = useRef<HTMLDivElement>(null);
-  const [dotColor, setDotColor] = useState("turquoise");
-
-  useEffect(() => {
-    if (imageUrl) {
-      extractColors(imageUrl)
-        .then((colors) => {
-          console.log(colors);
-          if (colors.length > 0) {
-            setDotColor(colors[0].hex); // Set the most prominent color
-          }
-        })
-        .catch(console.error);
-    }
-  }, [imageUrl]);
+  const ref = useRef<HTMLDivElement>(null);
 
   return (
     <Html
       position={position ? new Vector3(...position) : undefined}
-      style={{ pointerEvents: "auto", opacity }} // Apply opacity and enable pointer events
-      ref={HtmlRef}
-      occlude={occlude} // Pass occlude prop to Html component
+      style={{ pointerEvents: 'auto', opacity }}
+      ref={ref}
+      occlude={occlude}
     >
-      <div style={{ position: "relative" }} onClick={onClick}>
+      <div style={{ position: 'relative' }} onClick={onClick}>
+        {/* Outer ring */}
         <div
           style={{
-            width: "10px", // Size of the outer ring
-            height: "10px", // Size of the outer ring
-            border: `1.7px solid ${dotColor}`, // Thin ring around the dot
-            borderRadius: "50%",
-            position: "absolute",
+            width: 10,
+            height: 10,
+            border: `1.7px solid ${dotColor}`,
+            borderRadius: '50%',
+            position: 'absolute',
             left: 0,
             top: 0,
-            transform: "translate(-50%, -50%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            transform: 'translate(-50%, -50%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
+          {/* Inner dot */}
           <div
             style={{
-              width: "4px", // Smaller dot
-              height: "4px", // Smaller dot
+              width: 4,
+              height: 4,
               backgroundColor: dotColor,
-              borderRadius: "50%",
+              borderRadius: '50%',
             }}
-          ></div>
+          />
         </div>
+        {/* Name */}
         <span
           style={{
-            marginLeft: "10px",
-            color: "#bbbbbb", // Less bright white
-            position: "absolute",
-            left: "10px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontFamily: "'Space Mono', monospace", // Spacy font
-            userSelect: "none", // Make text unselectable
+            marginLeft: 10,
+            color: '#bbbbbb',
+            position: 'absolute',
+            left: 10,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontFamily: "'Space Mono', monospace",
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
           }}
         >
           {label}
