@@ -7,7 +7,7 @@ import { OrbitalParams } from "../types";
 interface OrbitLineProps {
   orbitalParams: OrbitalParams;
   centrePosition: THREE.Vector3;
-  planetRef: React.RefObject<THREE.Object3D>;
+  planetRef: React.RefObject<THREE.Object3D | null>;
   isFocused: boolean; // Add isFocused prop
 }
 

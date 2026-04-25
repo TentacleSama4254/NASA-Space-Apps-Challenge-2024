@@ -1,25 +1,47 @@
 import React, { useEffect, useRef } from "react";
-import { useFrame, extend } from "@react-three/fiber";
+import { useFrame, extend, type ThreeElement } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
-import { RigidBody } from "@react-three/rapier";
 import noise from "./../shaders/noise.glsl";
 import { SUN_OFFSET, SUN_RADIUS } from "../config/constants";
 import { useCamera } from "../context/Camera";
 import * as THREE from "three";
 
+const CustomShaderMaterial = shaderMaterial(
+  { emissiveIntensity: 1.0, time: 0 },
+  `
+      varying vec2 vUv;
+      varying vec3 vPosition;
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      customShaderMaterial: React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      > & {
-        ref?: React.Ref<any>;
-        emissiveIntensity?: number;
-        time?: number;
-      };
-    }
+      void main() {
+          vUv = uv;
+          vPosition = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+      `,
+  `
+      uniform float time;
+      uniform float emissiveIntensity;
+      varying vec2 vUv;
+      varying vec3 vPosition;
+
+      ${noise}
+
+      void main() {
+          float noiseValue = noise(vPosition + time);
+
+          vec3 color = mix(vec3(1.0, 0.1, 0.0), vec3(1.0, 0.2, 0.0), noiseValue);
+          float intensity = (noiseValue * 0.5 + 0.5) * emissiveIntensity;
+
+          gl_FragColor = vec4(color * intensity, 1.0);
+      }
+      `
+);
+
+extend({ CustomShaderMaterial });
+
+declare module "@react-three/fiber" {
+  interface ThreeElements {
+    customShaderMaterial: ThreeElement<typeof CustomShaderMaterial>;
   }
 }
 
@@ -35,41 +57,6 @@ const Sun: React.FC<SunProps> = ({
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const sunRef = useRef<THREE.InstancedMesh>(null);
-
-  const CustomShaderMaterial = shaderMaterial(
-    { emissiveIntensity: 1.0, time: 0 },
-    // Vertex Shader
-    `
-        varying vec2 vUv;
-        varying vec3 vPosition;
-
-        void main() {
-            vUv = uv;
-            vPosition = position;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-        `,
-    // Fragment Shader
-    `
-        uniform float time;
-        uniform float emissiveIntensity;
-        varying vec2 vUv;
-        varying vec3 vPosition;
-
-        ${noise}
-
-        void main() {
-            float noiseValue = noise(vPosition + time);
-
-            vec3 color = mix(vec3(1.0, 0.1, 0.0), vec3(1.0, 0.2, 0.0), noiseValue);
-            float intensity = (noiseValue * 0.5 + 0.5) * emissiveIntensity;
-
-            gl_FragColor = vec4(color * intensity, 1.0);
-        }
-        `
-  );
-
-  extend({ CustomShaderMaterial });
 
   const shaderRef = useRef<{ uniforms: { time: { value: number } } }>(null);
 
@@ -117,7 +104,7 @@ const Sun: React.FC<SunProps> = ({
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(
-            child as React.ReactElement,
+            child as React.ReactElement<{ centrePosition?: THREE.Vector3 }>,
             { centrePosition: position }
           );
           // return React.cloneElement(child, { planetPosition: position });

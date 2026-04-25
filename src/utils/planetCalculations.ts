@@ -19,8 +19,6 @@ interface Position {
   z: number;
 }
 
-interface Velocity extends Position {}
-
 export const calculateInitialVelocity = (position: Vector3, respawn: boolean): Vector3 => {
   const radialVector = new Vector3().copy(position)
   const distance = radialVector.length()

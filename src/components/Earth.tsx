@@ -7,7 +7,6 @@ import * as THREE from "three";
 import { OrbitalParams } from "../types";
 import { propagate } from "../utils/planetCalculations";
 import OrbitLine from "../context/OrbitLine"; // Import the new OrbitLine component
-import { Html } from "@react-three/drei";
 import { PlanetData } from "../config/SolarBodiesImport";
 import PlanetLabel from "./PlanetLabel";
 import { globalRefs } from "../context/GlobalRefs"; 
@@ -35,9 +34,6 @@ const Earth: React.FC<EarthProps> = ({
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
   const mesh = useRef<THREE.InstancedMesh>(null);
-  const cameraZoom = cameraContext
-    ? cameraContext.zoomLevel
-    : new THREE.Vector3();
 
   const [colourMap, normalMap, specularMap, cloudsMap, lightsMap] = useLoader(
     TextureLoader,
@@ -50,10 +46,9 @@ const Earth: React.FC<EarthProps> = ({
     ]
   );
 
-  const earthRef = useRef() as any;
-  const cloudRef = useRef() as any;
-  const lightsRef = useRef() as any;
-  const HtmlRef = useRef() as any;
+  const earthRef = useRef<THREE.Mesh | null>(null);
+  const cloudRef = useRef<THREE.Mesh | null>(null);
+  const lightsRef = useRef<THREE.Mesh | null>(null);
 
   const [isFocused, setIsFocused] = useState(false); // State variable to track focus state
   const [planetPosition, setPlanetPosition] = useState([0, 0, 0]);
@@ -72,18 +67,15 @@ const Earth: React.FC<EarthProps> = ({
 
   useFrame(({ clock, camera }) => {
     const elapsedTime = clock.getElapsedTime();
-    (earthRef.current as any).rotation.x = (-23.4 * Math.PI) / 180;
-    (cloudRef.current as any).rotation.x = (-23.4 * Math.PI) / 180;
-    (lightsRef.current as any).rotation.x = (-23.4 * Math.PI) / 180;
-    earthRef.current
-      ? ((earthRef.current as any).rotation.y = elapsedTime / 6)
-      : console.log("earthRef undefined");
-    cloudRef.current
-      ? ((cloudRef.current as any).rotation.y = elapsedTime / 6)
-      : console.log("cloudRef undefined");
-    lightsRef.current
-      ? ((lightsRef.current as any).rotation.y = elapsedTime / 6)
-      : console.log("lightsRef undefined");
+    if (!earthRef.current || !cloudRef.current || !lightsRef.current) {
+      return;
+    }
+    earthRef.current.rotation.x = (-23.4 * Math.PI) / 180;
+    cloudRef.current.rotation.x = (-23.4 * Math.PI) / 180;
+    lightsRef.current.rotation.x = (-23.4 * Math.PI) / 180;
+    earthRef.current.rotation.y = elapsedTime / 6;
+    cloudRef.current.rotation.y = elapsedTime / 6;
+    lightsRef.current.rotation.y = elapsedTime / 6;
 
     if (earthRef.current && cloudRef.current && lightsRef.current) {
       const position = propagate(

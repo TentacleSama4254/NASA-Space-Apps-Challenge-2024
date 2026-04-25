@@ -26,10 +26,13 @@ const Planet: React.FC<PlanetDataType> = ({
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
 
-  const [planetMap] = useLoader(TextureLoader, [texture_path]);
+  const [planetMap, secondaryMap] = useLoader(TextureLoader, [
+    texture_path,
+    texture_path1 || texture_path,
+  ]);
 
-  const planetRef = useRef() as any;
-  const planetRef1 = useRef() as any;
+  const planetRef = useRef<THREE.Mesh | null>(null);
+  const planetRef1 = useRef<THREE.Mesh | null>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [tagOpacity, setTagOpacity] = useState(1); // State variable for tag opacity
@@ -49,33 +52,32 @@ const Planet: React.FC<PlanetDataType> = ({
 
   useFrame(({ clock, camera }) => {
     const elapsedTime = clock.getElapsedTime();
-    planetRef.current
-      ? ((planetRef.current as any).rotation.y = elapsedTime / 6)
-      : console.log("planetRef undefined");
-
-    if (planetRef.current) {
-      const position = propagate(
-        elapsedTime,
-        orbitalParams.a,
-        orbitalParams.e,
-        orbitalParams.inclination,
-        orbitalParams.omega,
-        orbitalParams.raan,
-        false,
-        period
-      );
-
-      const [x, y, z] = [
-        centrePosition.x + position.x,
-        centrePosition.y + position.y,
-        centrePosition.z + position.z,
-      ];
-
-      planetRef.current.position.set(x, y, z);
-      setPlanetPosition([x, y, z]);
-      if (planetRef1) planetRef1.current?.position.set(x, y, z);
-      if (ringRef.current) ringRef.current.position.set(x, y, z);
+    if (!planetRef.current) {
+      return;
     }
+    planetRef.current.rotation.y = elapsedTime / 6;
+
+    const position = propagate(
+      elapsedTime,
+      orbitalParams.a,
+      orbitalParams.e,
+      orbitalParams.inclination,
+      orbitalParams.omega,
+      orbitalParams.raan,
+      false,
+      period
+    );
+
+    const [x, y, z] = [
+      centrePosition.x + position.x,
+      centrePosition.y + position.y,
+      centrePosition.z + position.z,
+    ];
+
+    planetRef.current.position.set(x, y, z);
+    setPlanetPosition([x, y, z]);
+    if (planetRef1) planetRef1.current?.position.set(x, y, z);
+    if (ringRef.current) ringRef.current.position.set(x, y, z);
 
     if (focusedObject?.object === planetRef.current && !isFocused) {
       setIsFocused(true);
@@ -117,7 +119,7 @@ const Planet: React.FC<PlanetDataType> = ({
         <mesh ref={planetRef1} onClick={handleFocus} userData={{ diameter }}>
           <sphereGeometry args={[diameter / 2, 64, 64]} />
           <meshPhongMaterial
-            map={useLoader(TextureLoader, [texture_path1])[0]}
+            map={secondaryMap}
             opacity={1}
             depthWrite={true}
             transparent={true}
