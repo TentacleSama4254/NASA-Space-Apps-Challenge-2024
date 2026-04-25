@@ -89,15 +89,15 @@ const Sun: React.FC<SunProps> = ({
           <sphereGeometry args={[SUN_RADIUS, 32, 32]} />
           <customShaderMaterial
             ref={shaderRef as React.Ref<any>}
-            emissiveIntensity={5}
+            emissiveIntensity={5.5}
             time={0.1}
           />
         </mesh>
 
         <pointLight
           // position={SUN_OFFSET.toArray()}
-          intensity={3.1}
-          color={"rgb(220, 250, 249)"}
+          intensity={3.8}
+          color={"rgb(255, 226, 180)"}
           decay={0}
         />
       </instancedMesh>

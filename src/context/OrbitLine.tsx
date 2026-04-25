@@ -9,7 +9,7 @@
  * the old hard-coded 20 000-second animation loop.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { propagate } from '../utils/planetCalculations';
@@ -39,28 +39,47 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
 }) => {
   const simClock = useSimClock();
   const orbitRef = useRef<THREE.Line | null>(null);
-  const [renderTrigger, setRenderTrigger] = useState(0);
+  const distanceRef = useRef(4000);
+  const planetWorldPosition = useRef(new THREE.Vector3());
+  const nearestOrbitPoint = useRef(new THREE.Vector3());
+  const anchoredLinePosition = useRef(new THREE.Vector3());
 
-  useEffect(() => {
+  const orbitData = useMemo(() => {
+    const makeSmoothLine = (sourcePoints: THREE.Vector3[], isClosed = true) => {
+      const targetPointCount = isFocused ? 4096 : 2048;
+      const curve = new THREE.CatmullRomCurve3(
+        sourcePoints,
+        isClosed,
+        'centripetal',
+        0.35,
+      );
+      const smoothPoints = curve.getPoints(targetPointCount);
+      const geometry = new THREE.BufferGeometry().setFromPoints(smoothPoints);
+      const material = new THREE.LineBasicMaterial({
+        color: 0x888888,
+        transparent: true,
+      });
+      return new THREE.Line(geometry, material);
+    };
+
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
 
     // ── Try ephemeris orbit path first ────────────────────────────────────────
     if (bodyId) {
       const ephPoints = getOrbitPath(bodyId, simTimeMs);
       if (ephPoints && ephPoints.length >= 3) {
-        const geometry = new THREE.BufferGeometry().setFromPoints(ephPoints);
-        const material = new THREE.LineBasicMaterial({
-          color: 0x888888,
-          transparent: true,
-        });
-        orbitRef.current = new THREE.Line(geometry, material);
-        setRenderTrigger((n) => n + 1);
-        return;
+        const maxPoints = isFocused ? 720 : 360;
+        const stride = Math.max(1, Math.ceil(ephPoints.length / maxPoints));
+        const sampled = ephPoints.filter((_, index) => index % stride === 0);
+        return {
+          line: makeSmoothLine(sampled),
+          basePosition: new THREE.Vector3(),
+        };
       }
     }
 
     // ── Keplerian fallback ─────────────────────────────────────────────────────
-    const NUM_POINTS = 1000;
+    const NUM_POINTS = isFocused ? 720 : 360;
     const periodSec  = periodDays * 86400;
 
     // Sample one full orbit centred on the current simulation time.
@@ -82,42 +101,90 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
       );
       points.push(
         new THREE.Vector3(
-          centrePosition.x + pos.x,
-          centrePosition.y + pos.y,
-          centrePosition.z + pos.z,
+          pos.x,
+          pos.y,
+          pos.z,
         ),
       );
     }
 
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0x888888, transparent: true });
-    orbitRef.current = new THREE.Line(geometry, material);
-    setRenderTrigger((n) => n + 1);
+    return {
+      line: makeSmoothLine(points),
+      basePosition: centrePosition.clone(),
+    };
+  // simClock is a ref-backed service; changes should not rebuild geometry.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orbitalParams, centrePosition, periodDays, bodyId]);
+  }, [
+    bodyId,
+    isFocused,
+    orbitalParams.a,
+    orbitalParams.e,
+    orbitalParams.inclination,
+    orbitalParams.omega,
+    orbitalParams.raan,
+    periodDays,
+  ]);
 
   useEffect(() => {
-    setRenderTrigger((n) => n + 1);
-  }, [isFocused]);
+    orbitRef.current = orbitData.line;
+    return () => {
+      orbitData.line.geometry.dispose();
+      const material = orbitData.line.material;
+      if (Array.isArray(material)) {
+        material.forEach((m) => m.dispose());
+      } else {
+        material.dispose();
+      }
+    };
+  }, [orbitData]);
 
   useFrame(({ camera }) => {
     if (!orbitRef.current || !planetRef.current) return;
 
     const material = orbitRef.current.material as THREE.LineBasicMaterial;
-    const dist = camera.position.distanceTo(planetRef.current.position);
+    planetRef.current.getWorldPosition(planetWorldPosition.current);
+    const dist = camera.position.distanceTo(planetWorldPosition.current);
+    distanceRef.current = THREE.MathUtils.lerp(distanceRef.current, dist, 0.1);
 
-    material.opacity = THREE.MathUtils.clamp(
-      1.0 - (dist / 4000) * (1.0 - 0.08),
-      0.08,
-      1.0,
+    const focusOpacity = THREE.MathUtils.clamp(
+      0.09 + (distanceRef.current / 900) * 0.56,
+      0.09,
+      0.65,
     );
+    const backgroundOpacity = THREE.MathUtils.clamp(
+      0.035 + (distanceRef.current / 6000) * 0.11,
+      0.035,
+      0.16,
+    );
+
+    material.opacity = isFocused ? focusOpacity : backgroundOpacity;
     material.transparent = true;
-    material.color.set(isFocused ? 0xffffff : 0x888888);
+    material.color.set(isFocused ? 0xffffff : 0x6f6f6f);
+
+    if (isFocused) {
+      const positionAttribute = orbitRef.current.geometry.getAttribute('position') as THREE.BufferAttribute;
+      let nearestDistanceSq = Infinity;
+
+      for (let i = 0; i < positionAttribute.count; i += 1) {
+        nearestOrbitPoint.current.fromBufferAttribute(positionAttribute, i);
+        nearestOrbitPoint.current.add(orbitData.basePosition);
+        const distanceSq = nearestOrbitPoint.current.distanceToSquared(planetWorldPosition.current);
+        if (distanceSq < nearestDistanceSq) {
+          nearestDistanceSq = distanceSq;
+          anchoredLinePosition.current.copy(nearestOrbitPoint.current);
+        }
+      }
+
+      orbitRef.current.position.copy(orbitData.basePosition);
+      orbitRef.current.position.add(
+        planetWorldPosition.current.clone().sub(anchoredLinePosition.current),
+      );
+    } else {
+      orbitRef.current.position.copy(orbitData.basePosition);
+    }
   });
 
-  return orbitRef.current ? (
-    <primitive object={orbitRef.current} key={renderTrigger} />
-  ) : null;
+  return <primitive object={orbitData.line} />;
 };
 
 export default OrbitLine;

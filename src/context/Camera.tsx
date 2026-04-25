@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Vector3, Camera, Spherical } from "three";
+import { Vector3, Camera, Spherical, MathUtils } from "three";
+import { DISTANCE_SCALE_KM } from "../config/constants";
 
 interface CameraContextType {
   focusedObject: { object: any; instanceId?: number } | null;
@@ -17,6 +18,16 @@ export const useCamera = () => useContext(CameraContext);
 
 import { ReactNode } from "react";
 
+const AU_KM = 149_597_870.7;
+const LIGHT_YEAR_KM = 9.4607e12;
+
+function formatDistance(km: number): string {
+  if (km < 1_000_000) return `${km.toLocaleString(undefined, { maximumFractionDigits: 0 })} km`;
+  if (km < 0.1 * AU_KM) return `${(km / 1_000_000).toFixed(2)} million km`;
+  if (km < 0.1 * LIGHT_YEAR_KM) return `${(km / AU_KM).toFixed(4)} AU`;
+  return `${(km / LIGHT_YEAR_KM).toFixed(5)} ly`;
+}
+
 interface CameraProviderProps {
   children: ReactNode;
 }
@@ -25,6 +36,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const { camera, controls } = useThree() as { camera: Camera, controls: { target: Vector3, update: () => void } };
   const cameraTarget = useRef(new Vector3());
   const [focusedObject, setFocusedObject] = useState<{ object: any; instanceId?: number } | null>(null);
+  const focusedObjectRef = useRef<{ object: any; instanceId?: number } | null>(null);
   const initialOffset = useRef(new Vector3());
   const isPanning = useRef(false);
   const initialTouchDistance = useRef(0);
@@ -35,15 +47,31 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
   const [scaleTextAu, setScaleTextAu] = useState("0.0067AU");
   const [zoomLevel, setZoomLevel] = useState(0);
   const [cameraLocation, setLocation] = useState(new Vector3());
+  const focusedRadius = useRef(predefinedDistance);
+  const lastScaleDispatch = useRef(0);
+
+  useEffect(() => {
+    focusedObjectRef.current = focusedObject;
+  }, [focusedObject]);
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
-      const zoomFactor = 1.4;
+      if (!focusedObjectRef.current) return;
+      const offsetLength = initialOffset.current.length();
+      const closeFactor = MathUtils.clamp(
+        offsetLength / Math.max(focusedRadius.current * 32, 0.01),
+        0,
+        1,
+      );
+      const zoomFactor = MathUtils.lerp(1.025, 1.14, closeFactor);
       if (event.deltaY < 0) {
         initialOffset.current.multiplyScalar(1 / zoomFactor);
       } else {
         initialOffset.current.multiplyScalar(zoomFactor);
       }
+      const minDistance = Math.max(focusedRadius.current * 0.65, 0.015);
+      const maxDistance = 24500;
+      initialOffset.current.clampLength(minDistance, maxDistance);
       updateScale();
     };
 
@@ -108,12 +136,22 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       } else if (event.touches.length === 2) {
         const newTouchDistance =
           event.touches[0].pageX - event.touches[1].pageX;
-        const zoomFactor = 1.4;
+        const offsetLength = initialOffset.current.length();
+        const closeFactor = MathUtils.clamp(
+          offsetLength / Math.max(focusedRadius.current * 32, 0.01),
+          0,
+          1,
+        );
+        const zoomFactor = MathUtils.lerp(1.025, 1.14, closeFactor);
         if (newTouchDistance > initialTouchDistance.current) {
           initialOffset.current.multiplyScalar(1 / zoomFactor);
         } else {
           initialOffset.current.multiplyScalar(zoomFactor);
         }
+        initialOffset.current.clampLength(
+          Math.max(focusedRadius.current * 0.65, 0.015),
+          24500,
+        );
         initialTouchDistance.current = newTouchDistance;
       }
     };
@@ -151,7 +189,11 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
 
   useFrame((_, delta) => {
     if (focusedObject) {
-      const target = focusedObject.object.position.clone();
+      const target = new Vector3();
+      focusedObject.object.getWorldPosition?.(target);
+      if (target.lengthSq() === 0 && focusedObject.object.position) {
+        target.copy(focusedObject.object.position);
+      }
       // Desired camera position relative to the focused object
       const desiredPosition = target.clone().add(initialOffset.current);
 
@@ -197,6 +239,19 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       }
 
       const distance = camera.position.distanceTo(target);
+      if (performance.now() - lastScaleDispatch.current > 200) {
+        lastScaleDispatch.current = performance.now();
+        const km = distance * DISTANCE_SCALE_KM;
+        window.dispatchEvent(new CustomEvent("solar-scale-change", {
+          detail: {
+            primary: `Camera distance: ${formatDistance(km)}`,
+            secondary:
+              km < 0.1 * LIGHT_YEAR_KM
+                ? `${(km / AU_KM).toFixed(6)} AU · ${distance.toFixed(2)} scene units`
+                : `${(km / LIGHT_YEAR_KM).toFixed(6)} ly · ${distance.toExponential(2)} scene units`,
+          },
+        }));
+      }
       // console.log("Distance:", distance, '\nCamera : ', camera.position, '\nCam target : ', cameraTarget.current, '\nTarget : ', target, '\nrelative pos : ', camera.position.clone().sub(target));
     }
   });
@@ -206,9 +261,13 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
     const object = event.object;
     const instanceId = event.instanceId ?? 88;
 
-    console.log("handleFocus", focusedObject, object.position, instanceId);
-
     if (instanceId !== undefined) {
+      const objectWorldPosition = new Vector3();
+      object.getWorldPosition?.(objectWorldPosition);
+      if (objectWorldPosition.lengthSq() === 0 && object.position) {
+        objectWorldPosition.copy(object.position);
+      }
+
       // Store current camera state for smooth transition
       transitionStartPosition.current.copy(camera.position);
       if (controls) {
@@ -225,12 +284,17 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       setFocusedObject({ object, instanceId });
 
       // Calculate and store the initial offset between the camera and the target
-      const direction = camera.position.clone().sub(object.position).normalize();
+      const direction = camera.position.clone().sub(objectWorldPosition).normalize();
+      const objectRadius =
+        object?.geometry?.parameters?.radius ??
+        (typeof object?.userData?.diameter === "number"
+          ? object.userData.diameter / 2
+          : undefined);
+      focusedRadius.current = objectRadius ?? predefinedDistance;
+
       initialOffset.current.copy(
         direction.multiplyScalar(
-          object?.geometry?.parameters?.radius
-            ? object?.geometry?.parameters?.radius * 1.9
-            : predefinedDistance
+          objectRadius ? Math.max(objectRadius * 12, 0.35) : predefinedDistance
         )
       );
 

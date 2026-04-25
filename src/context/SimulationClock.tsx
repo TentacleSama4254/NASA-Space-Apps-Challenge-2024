@@ -9,8 +9,8 @@
  * UI components that need a reactive date string should read getSimTimeMs() in
  * their own useFrame loop and maintain local state.
  *
- * Default timeScale 1_200_000 ≈ 13.9 simulated days per real second, which
- * completes one Earth orbit in about 26 real seconds.
+ * Default timeScale 120_000 ≈ 1.4 simulated days per real second, which
+ * completes one Earth orbit in about 4.4 real minutes.
  */
 
 import {
@@ -54,7 +54,7 @@ export const useSimClock = (): SimClockContextType | null =>
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_SCALE = 1_200_000; // ~13.9 sim-days per real second
+const DEFAULT_SCALE = 120_000; // ~1.4 sim-days per real second
 
 interface Props {
   children: ReactNode;

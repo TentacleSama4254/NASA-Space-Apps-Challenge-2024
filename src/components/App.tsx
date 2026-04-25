@@ -6,6 +6,7 @@ import { Physics } from '@react-three/rapier';
 import Scene from './Scene';
 import Loader from './Loader';
 import ToolbarBubble from './UI/Toolbar';
+import ScaleBar from './Scale-Bar';
 import { SimulationClockProvider } from '../context/SimulationClock';
 import '../index.css';
 
@@ -16,9 +17,9 @@ const App = () => (
       camera={{ position: [0, 50, 150], far: 600000 }}
     >
       <color attach="background" args={['black']} />
-      <ambientLight intensity={0} />
+      <ambientLight intensity={0.04} />
 
-      <OrbitControls maxDistance={24500} minDistance={1} makeDefault />
+      <OrbitControls maxDistance={24500} minDistance={0.02} makeDefault />
 
       {/*
         SimulationClockProvider must be inside Canvas so it can use useFrame.
@@ -39,11 +40,12 @@ const App = () => (
       </SimulationClockProvider>
 
       <EffectComposer>
-        <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} height={300} />
+        <Bloom luminanceThreshold={0.08} luminanceSmoothing={0.9} intensity={1.25} height={300} />
       </EffectComposer>
     </Canvas>
 
     <ToolbarBubble />
+    <ScaleBar />
   </div>
 );
 
