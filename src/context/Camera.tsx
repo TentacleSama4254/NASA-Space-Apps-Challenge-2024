@@ -69,7 +69,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       } else {
         initialOffset.current.multiplyScalar(zoomFactor);
       }
-      const minDistance = Math.max(focusedRadius.current * 0.65, 0.015);
+      const minDistance = Math.max(focusedRadius.current * 1.6, 0.04);
       const maxDistance = 24500;
       initialOffset.current.clampLength(minDistance, maxDistance);
       updateScale();
@@ -149,7 +149,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
           initialOffset.current.multiplyScalar(zoomFactor);
         }
         initialOffset.current.clampLength(
-          Math.max(focusedRadius.current * 0.65, 0.015),
+          Math.max(focusedRadius.current * 1.6, 0.04),
           24500,
         );
         initialTouchDistance.current = newTouchDistance;

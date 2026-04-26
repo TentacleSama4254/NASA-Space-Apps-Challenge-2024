@@ -40,7 +40,7 @@ const App = () => (
       </SimulationClockProvider>
 
       <EffectComposer>
-        <Bloom luminanceThreshold={0.08} luminanceSmoothing={0.9} intensity={1.25} height={300} />
+        <Bloom luminanceThreshold={0.14} luminanceSmoothing={0.9} intensity={0.85} height={300} />
       </EffectComposer>
     </Canvas>
 

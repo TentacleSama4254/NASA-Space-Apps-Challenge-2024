@@ -148,6 +148,7 @@ export function getBodyPosition(
 export function getOrbitPath(
   bodyId: string,
   simTimeMs: number,
+  samples = 1440,
 ): THREE.Vector3[] | null {
   const series = seriesCache.get(bodyId);
   if (!series || series.records.length < 3) return null;
@@ -156,21 +157,16 @@ export function getOrbitPath(
   const periodMs = (body?.periodDays ?? 365) * 86400 * 1000;
   const half = periodMs / 2;
   const startMs = simTimeMs - half;
-  const endMs = simTimeMs + half;
-
-  const isMoon = bodyId === 'moon';
-  const earthPos = isMoon ? getBodyPosition('earth', simTimeMs) : null;
-  if (isMoon && !earthPos) return null;
 
   const points: THREE.Vector3[] = [];
-  for (const r of series.records) {
-    if (r.unixMs < startMs || r.unixMs > endMs) continue;
-    const offset = eclipticToScene(r.posKm);
-    if (isMoon && earthPos) {
-      points.push(earthPos.clone().add(offset));
-    } else {
-      points.push(offset.clone().add(SUN_OFFSET));
-    }
+
+  // Sample uniformly from the same interpolated position provider the bodies use.
+  // This guarantees the current simTime point is on the rendered orbit instead
+  // of merely near a daily Horizons sample.
+  for (let i = 0; i <= samples; i += 1) {
+    const t = startMs + (i / samples) * periodMs;
+    const point = getBodyPosition(bodyId, t);
+    if (point) points.push(point);
   }
 
   return points.length >= 3 ? points : null;

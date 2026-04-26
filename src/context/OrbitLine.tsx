@@ -41,20 +41,10 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
   const orbitRef = useRef<THREE.Line | null>(null);
   const distanceRef = useRef(4000);
   const planetWorldPosition = useRef(new THREE.Vector3());
-  const nearestOrbitPoint = useRef(new THREE.Vector3());
-  const anchoredLinePosition = useRef(new THREE.Vector3());
 
   const orbitData = useMemo(() => {
-    const makeSmoothLine = (sourcePoints: THREE.Vector3[], isClosed = true) => {
-      const targetPointCount = isFocused ? 4096 : 2048;
-      const curve = new THREE.CatmullRomCurve3(
-        sourcePoints,
-        isClosed,
-        'centripetal',
-        0.35,
-      );
-      const smoothPoints = curve.getPoints(targetPointCount);
-      const geometry = new THREE.BufferGeometry().setFromPoints(smoothPoints);
+    const makeLine = (sourcePoints: THREE.Vector3[]) => {
+      const geometry = new THREE.BufferGeometry().setFromPoints(sourcePoints);
       const material = new THREE.LineBasicMaterial({
         color: 0x888888,
         transparent: true,
@@ -66,20 +56,17 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
 
     // ── Try ephemeris orbit path first ────────────────────────────────────────
     if (bodyId) {
-      const ephPoints = getOrbitPath(bodyId, simTimeMs);
+      const ephPoints = getOrbitPath(bodyId, simTimeMs, isFocused ? 4096 : 1440);
       if (ephPoints && ephPoints.length >= 3) {
-        const maxPoints = isFocused ? 720 : 360;
-        const stride = Math.max(1, Math.ceil(ephPoints.length / maxPoints));
-        const sampled = ephPoints.filter((_, index) => index % stride === 0);
         return {
-          line: makeSmoothLine(sampled),
+          line: makeLine(ephPoints),
           basePosition: new THREE.Vector3(),
         };
       }
     }
 
     // ── Keplerian fallback ─────────────────────────────────────────────────────
-    const NUM_POINTS = isFocused ? 720 : 360;
+    const NUM_POINTS = isFocused ? 4096 : 1440;
     const periodSec  = periodDays * 86400;
 
     // Sample one full orbit centred on the current simulation time.
@@ -109,7 +96,7 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
     }
 
     return {
-      line: makeSmoothLine(points),
+      line: makeLine(points),
       basePosition: centrePosition.clone(),
     };
   // simClock is a ref-backed service; changes should not rebuild geometry.
@@ -161,27 +148,7 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
     material.transparent = true;
     material.color.set(isFocused ? 0xffffff : 0x6f6f6f);
 
-    if (isFocused) {
-      const positionAttribute = orbitRef.current.geometry.getAttribute('position') as THREE.BufferAttribute;
-      let nearestDistanceSq = Infinity;
-
-      for (let i = 0; i < positionAttribute.count; i += 1) {
-        nearestOrbitPoint.current.fromBufferAttribute(positionAttribute, i);
-        nearestOrbitPoint.current.add(orbitData.basePosition);
-        const distanceSq = nearestOrbitPoint.current.distanceToSquared(planetWorldPosition.current);
-        if (distanceSq < nearestDistanceSq) {
-          nearestDistanceSq = distanceSq;
-          anchoredLinePosition.current.copy(nearestOrbitPoint.current);
-        }
-      }
-
-      orbitRef.current.position.copy(orbitData.basePosition);
-      orbitRef.current.position.add(
-        planetWorldPosition.current.clone().sub(anchoredLinePosition.current),
-      );
-    } else {
-      orbitRef.current.position.copy(orbitData.basePosition);
-    }
+    orbitRef.current.position.copy(orbitData.basePosition);
   });
 
   return <primitive object={orbitData.line} />;
