@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/immutability -- three.js textures/materials are mutable GPU resources. */
+
 import React, { useEffect, useRef, useState, Suspense } from 'react';
-import { useFrame, useLoader } from '@react-three/fiber';
+import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import { PlanetDataType, SatelliteProps } from '../types';
@@ -34,7 +36,15 @@ interface AtmosphereProps {
 }
 
 const AtmosphereLayer: React.FC<AtmosphereProps> = ({ texturePath, diameter, meshRef }) => {
+  const { gl } = useThree();
   const [map] = useLoader(TextureLoader, [texturePath]);
+
+  useEffect(() => {
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = Math.min(16, gl.capabilities.getMaxAnisotropy());
+    map.needsUpdate = true;
+  }, [map, gl]);
+
   return (
     <mesh ref={meshRef as React.RefObject<THREE.Mesh>}>
       <sphereGeometry args={[diameter / 2, 32, 32]} />
@@ -46,26 +56,6 @@ const AtmosphereLayer: React.FC<AtmosphereProps> = ({ texturePath, diameter, mes
       />
     </mesh>
   );
-};
-
-interface PlanetTextureProps {
-  texturePath: string;
-  targetRef: React.RefObject<THREE.Mesh | null>;
-}
-
-const PlanetTexture: React.FC<PlanetTextureProps> = ({ texturePath, targetRef }) => {
-  const [map] = useLoader(TextureLoader, [texturePath]);
-
-  useEffect(() => {
-    const mesh = targetRef.current;
-    if (!mesh) return;
-    const material = mesh.material as THREE.MeshPhongMaterial;
-    material.map = map;
-    material.color.set(0xffffff);
-    material.needsUpdate = true;
-  }, [map, targetRef]);
-
-  return null;
 };
 
 // ─── Main planet component ────────────────────────────────────────────────────
@@ -84,6 +74,7 @@ const Planet: React.FC<PlanetDataType> = ({
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
+  const { gl } = useThree();
 
   // Look up the body definition for registry-driven data.
   const bodyId = name.toLowerCase();
@@ -91,13 +82,14 @@ const Planet: React.FC<PlanetDataType> = ({
   const labelColor = bodyDef?.labelColor ?? 'turquoise';
 
   const textureSrc = bodyDef?.textures.low ?? texture_path ?? '/textures/8k_mercury.jpg';
+  const [surfaceMap] = useLoader(TextureLoader, [textureSrc]);
 
   const groupRef = useRef<THREE.Group>(null);
   const planetRef = useRef<THREE.Mesh>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const [tagOpacity, setTagOpacity] = useState(1);
   const [segments, setSegments] = useState(16);
-  const [loadTexture, setLoadTexture] = useState(false);
+  const [loadDetails, setLoadDetails] = useState(false);
   const opacityRef = useRef(tagOpacity);
 
   const defaultOrbit = {
@@ -115,6 +107,12 @@ const Planet: React.FC<PlanetDataType> = ({
   const periodDays = bodyDef?.periodDays ?? (period ?? 365);
   const periodSec = periodDays * 86400;
   const ma0Deg = keplerian?.ma0 ?? 0;
+
+  useEffect(() => {
+    surfaceMap.colorSpace = THREE.SRGBColorSpace;
+    surfaceMap.anisotropy = Math.min(16, gl.capabilities.getMaxAnisotropy());
+    surfaceMap.needsUpdate = true;
+  }, [surfaceMap, gl]);
 
   useFrame(({ clock: r3fClock, camera }) => {
     if (!groupRef.current || !planetRef.current) return;
@@ -164,7 +162,7 @@ const Planet: React.FC<PlanetDataType> = ({
     const newSegs = segmentCount(dist);
     if (newSegs !== segments) setSegments(newSegs);
     const textureDistance = Math.max(diameter * 50, 2);
-    if (!loadTexture && dist < textureDistance) setLoadTexture(true);
+    if (!loadDetails && dist < textureDistance) setLoadDetails(true);
   });
 
   useEffect(() => {
@@ -176,13 +174,13 @@ const Planet: React.FC<PlanetDataType> = ({
 
   const focusThisBody = () => {
     if (groupRef.current) {
-      setLoadTexture(true);
+      setLoadDetails(true);
       handleFocus({ object: groupRef.current });
     }
   };
 
   const isFocused = focusedObject?.object === groupRef.current;
-  const shouldLoadDetails = loadTexture || isFocused;
+  const shouldLoadDetails = loadDetails || isFocused;
 
   return (
     <>
@@ -196,14 +194,8 @@ const Planet: React.FC<PlanetDataType> = ({
           }}
         >
           <sphereGeometry args={[diameter / 2, segments, segments]} />
-          <meshPhongMaterial color={bodyDef?.textures.placeholder ?? '#888888'} />
+          <meshPhongMaterial map={surfaceMap} color={0xffffff} />
         </mesh>
-
-        {shouldLoadDetails && (
-          <Suspense fallback={null}>
-            <PlanetTexture texturePath={textureSrc} targetRef={planetRef} />
-          </Suspense>
-        )}
 
         {/* Venus atmosphere overlay — deferred until the planet is focused/nearby */}
         {shouldLoadDetails && texture_path1 && (

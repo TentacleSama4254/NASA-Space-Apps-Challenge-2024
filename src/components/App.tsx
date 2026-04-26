@@ -14,12 +14,12 @@ const App = () => (
   <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
     <Canvas
       style={{ position: 'absolute', inset: 0 }}
-      camera={{ position: [0, 50, 150], far: 600000 }}
+      camera={{ position: [0, 50, 150], near: 0.0001, far: 600000 }}
     >
       <color attach="background" args={['black']} />
       <ambientLight intensity={0.04} />
 
-      <OrbitControls maxDistance={24500} minDistance={0.02} makeDefault />
+      <OrbitControls maxDistance={24500} minDistance={0.0005} makeDefault />
 
       {/*
         SimulationClockProvider must be inside Canvas so it can use useFrame.

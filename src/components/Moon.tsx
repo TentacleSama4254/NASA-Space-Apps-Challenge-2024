@@ -6,8 +6,10 @@
  * Earth's ephemeris/fallback position is used while data loads.
  */
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { useFrame, useLoader } from '@react-three/fiber';
+/* eslint-disable react-hooks/immutability -- three.js textures/materials are mutable GPU resources. */
+
+import React, { useEffect, useRef } from 'react';
+import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import { OrbitalParams, SatelliteProps } from '../types';
@@ -22,25 +24,6 @@ import { useCamera } from '../context/Camera';
 
 const MOON_DEF = BODIES.moon;
 
-interface MoonTextureProps {
-  targetRef: React.RefObject<THREE.InstancedMesh | null>;
-}
-
-const MoonTexture: React.FC<MoonTextureProps> = ({ targetRef }) => {
-  const [moonMap] = useLoader(TextureLoader, [MOON_DEF.textures.low]);
-
-  useEffect(() => {
-    const mesh = targetRef.current;
-    if (!mesh) return;
-    const material = mesh.material as THREE.MeshStandardMaterial;
-    material.map = moonMap;
-    material.color.set(0xffffff);
-    material.needsUpdate = true;
-  }, [moonMap, targetRef]);
-
-  return null;
-};
-
 const Satellite: React.FC<SatelliteProps> = ({
   planetPosition = new THREE.Vector3(0, 0, 0),
   orbit,
@@ -49,11 +32,12 @@ const Satellite: React.FC<SatelliteProps> = ({
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
+  const { gl } = useThree();
+  const [moonMap] = useLoader(TextureLoader, [MOON_DEF.textures.low]);
 
   const groupRef = useRef<THREE.Group>(null);
   const moonRef = useRef<THREE.InstancedMesh>(null);
   const centreRef = useRef(planetPosition.clone());
-  const [loadTexture, setLoadTexture] = useState(false);
 
   const kep = MOON_DEF.keplerianElements!;
   const periodDays = MOON_DEF.periodDays!;
@@ -66,6 +50,12 @@ const Satellite: React.FC<SatelliteProps> = ({
     omega: kep.omega,
     raan: kep.raan,
   };
+
+  useEffect(() => {
+    moonMap.colorSpace = THREE.SRGBColorSpace;
+    moonMap.anisotropy = Math.min(16, gl.capabilities.getMaxAnisotropy());
+    moonMap.needsUpdate = true;
+  }, [moonMap, gl]);
 
   useFrame(({ clock: r3fClock }) => {
     if (!groupRef.current || !moonRef.current) return;
@@ -102,7 +92,6 @@ const Satellite: React.FC<SatelliteProps> = ({
 
   const focusMoon = () => {
     if (groupRef.current) {
-      setLoadTexture(true);
       handleFocus({ object: groupRef.current });
     }
   };
@@ -124,14 +113,8 @@ const Satellite: React.FC<SatelliteProps> = ({
         >
           <ambientLight intensity={0.03} />
           <sphereGeometry args={[earthSize * 0.27, 32, 32]} />
-          <meshStandardMaterial color={MOON_DEF.textures.placeholder} />
+          <meshStandardMaterial map={moonMap} color={0xffffff} />
         </instancedMesh>
-
-        {loadTexture && (
-          <Suspense fallback={null}>
-            <MoonTexture targetRef={moonRef} />
-          </Suspense>
-        )}
       </group>
 
       <OrbitLine

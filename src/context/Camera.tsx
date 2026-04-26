@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Vector3, Camera, Spherical, MathUtils } from "three";
+import { Vector3, Camera, Spherical, MathUtils, PerspectiveCamera } from "three";
 import { DISTANCE_SCALE_KM } from "../config/constants";
 
 interface CameraContextType {
@@ -20,6 +20,31 @@ import { ReactNode } from "react";
 
 const AU_KM = 149_597_870.7;
 const LIGHT_YEAR_KM = 9.4607e12;
+const MAX_FOCUS_DISTANCE = 24500;
+
+function getObjectRadius(object: any): number | undefined {
+  return object?.geometry?.parameters?.radius ??
+    (typeof object?.userData?.diameter === "number"
+      ? object.userData.diameter / 2
+      : undefined);
+}
+
+function getMinFocusDistance(radius: number): number {
+  return Math.max(radius * 1.08, 0.0005);
+}
+
+function updateCameraClipPlanes(camera: Camera, targetDistance: number, radius: number): void {
+  if (!(camera instanceof PerspectiveCamera)) return;
+
+  const surfaceClearance = Math.max(targetDistance - radius, 0.00001);
+  const nextNear = MathUtils.clamp(surfaceClearance * 0.25, 0.00001, 10);
+
+  if (Math.abs(camera.near - nextNear) > nextNear * 0.2) {
+    camera.near = nextNear;
+    camera.far = 600000;
+    camera.updateProjectionMatrix();
+  }
+}
 
 function formatDistance(km: number): string {
   if (km < 1_000_000) return `${km.toLocaleString(undefined, { maximumFractionDigits: 0 })} km`;
@@ -69,8 +94,8 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       } else {
         initialOffset.current.multiplyScalar(zoomFactor);
       }
-      const minDistance = Math.max(focusedRadius.current * 1.6, 0.04);
-      const maxDistance = 24500;
+      const minDistance = getMinFocusDistance(focusedRadius.current);
+      const maxDistance = MAX_FOCUS_DISTANCE;
       initialOffset.current.clampLength(minDistance, maxDistance);
       updateScale();
     };
@@ -149,8 +174,8 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
           initialOffset.current.multiplyScalar(zoomFactor);
         }
         initialOffset.current.clampLength(
-          Math.max(focusedRadius.current * 1.6, 0.04),
-          24500,
+          getMinFocusDistance(focusedRadius.current),
+          MAX_FOCUS_DISTANCE,
         );
         initialTouchDistance.current = newTouchDistance;
       }
@@ -239,6 +264,8 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
       }
 
       const distance = camera.position.distanceTo(target);
+      updateCameraClipPlanes(camera, distance, focusedRadius.current);
+
       if (performance.now() - lastScaleDispatch.current > 200) {
         lastScaleDispatch.current = performance.now();
         const km = distance * DISTANCE_SCALE_KM;
@@ -285,11 +312,7 @@ export const CameraProvider = ({ children }: CameraProviderProps) => {
 
       // Calculate and store the initial offset between the camera and the target
       const direction = camera.position.clone().sub(objectWorldPosition).normalize();
-      const objectRadius =
-        object?.geometry?.parameters?.radius ??
-        (typeof object?.userData?.diameter === "number"
-          ? object.userData.diameter / 2
-          : undefined);
+      const objectRadius = getObjectRadius(object);
       focusedRadius.current = objectRadius ?? predefinedDistance;
 
       initialOffset.current.copy(
