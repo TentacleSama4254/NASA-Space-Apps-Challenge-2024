@@ -6,8 +6,9 @@
  * Earth's ephemeris/fallback position is used while data loads.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { OrbitalParams, SatelliteProps } from '../types';
 import { propagate } from '../utils/planetCalculations';
@@ -26,6 +27,7 @@ import { globalRefs } from '../context/GlobalRefs';
 
 const MIN_VISIBLE_MOON_RADIUS = 0.01;
 const IRREGULAR_RADIUS_KM = 400;
+const MODEL_LOAD_DISTANCE = 12;
 
 function hashString(value: string): number {
   let hash = 2166136261;
@@ -101,6 +103,47 @@ function makeIrregularScale(bodyId: string, radiusKm: number): [number, number, 
   return [x, y, z];
 }
 
+interface LazyMoonModelProps {
+  path: string;
+  visualRadius: number;
+  maxShapeScale: number;
+  onReady: () => void;
+}
+
+function LazyMoonModel({
+  path,
+  visualRadius,
+  maxShapeScale,
+  onReady,
+}: LazyMoonModelProps) {
+  const { scene } = useGLTF(path) as { scene: THREE.Group };
+  const model = useMemo(() => scene.clone(true), [scene]);
+  const transform = useMemo(() => {
+    const bounds = new THREE.Box3().setFromObject(model);
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    const maxDimension = Math.max(size.x, size.y, size.z);
+    const scale = maxDimension > 0 ? (visualRadius * 2 * maxShapeScale) / maxDimension : 1;
+
+    return {
+      scale,
+      position: center.multiplyScalar(-scale),
+    };
+  }, [maxShapeScale, model, visualRadius]);
+
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+
+  return (
+    <primitive
+      object={model}
+      position={transform.position}
+      scale={transform.scale}
+    />
+  );
+}
+
 const Satellite: React.FC<SatelliteProps> = ({
   bodyId = 'moon',
   orbit,
@@ -112,10 +155,13 @@ const Satellite: React.FC<SatelliteProps> = ({
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
 
   const groupRef = useRef<THREE.Group>(null);
-  const moonRef = useRef<THREE.InstancedMesh>(null);
+  const surfaceRef = useRef<THREE.Group>(null);
   const worldPositionRef = useRef(new THREE.Vector3());
   const opacityRef = useRef(1);
+  const modelRequestedRef = useRef(false);
   const [tagOpacity, setTagOpacity] = useState(1);
+  const [shouldLoadModel, setShouldLoadModel] = useState(false);
+  const [modelReady, setModelReady] = useState(false);
   const isFocused = focusedObject?.object === groupRef.current;
   const usesPhotoTexture = bodyDef.id === 'moon';
   const { texture: moonMap } = useProgressiveTexture({
@@ -139,6 +185,7 @@ const Satellite: React.FC<SatelliteProps> = ({
   );
   const maxShapeScale = Math.max(...shapeScale);
   const labelHeight = visualRadius * maxShapeScale * 1.65;
+  const hasModel = Boolean(bodyDef.model?.path);
 
   const orbitalParams: OrbitalParams = orbit ?? {
     a: kep.a,
@@ -166,8 +213,14 @@ const Satellite: React.FC<SatelliteProps> = ({
     proceduralMap?.dispose();
   }, [proceduralMap]);
 
+  useEffect(() => {
+    modelRequestedRef.current = false;
+    setShouldLoadModel(false);
+    setModelReady(false);
+  }, [bodyDef.model?.path]);
+
   useFrame(({ clock: r3fClock, camera }) => {
-    if (!groupRef.current || !moonRef.current) return;
+    if (!groupRef.current || !surfaceRef.current) return;
 
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
 
@@ -193,10 +246,15 @@ const Satellite: React.FC<SatelliteProps> = ({
       groupRef.current.position.copy(localPos);
     }
 
-    moonRef.current.rotation.y = (r3fClock.getElapsedTime() / 6) * 0.037;
+    surfaceRef.current.rotation.y = (r3fClock.getElapsedTime() / 6) * 0.037;
 
     groupRef.current.getWorldPosition(worldPositionRef.current);
     const dist = camera.position.distanceTo(worldPositionRef.current);
+    if (hasModel && !modelRequestedRef.current && (isFocused || dist < MODEL_LOAD_DISTANCE)) {
+      modelRequestedRef.current = true;
+      setShouldLoadModel(true);
+    }
+
     const nextOpacity = dist < 55 ? 1 : Math.max(0, 1 - (dist - 55) / 80);
     if (Math.abs(nextOpacity - opacityRef.current) > 0.05) {
       opacityRef.current = nextOpacity;
@@ -210,27 +268,40 @@ const Satellite: React.FC<SatelliteProps> = ({
     }
   };
 
+  const markModelReady = useCallback(() => {
+    setModelReady(true);
+  }, []);
+
   return (
     <>
       <group ref={groupRef} userData={{ diameter: visualRadius * 2 * maxShapeScale }}>
-        <instancedMesh
+        <group
+          ref={surfaceRef}
           userData={{ type: bodyDef.name }}
-          type="kinematicPosition"
-          args={[undefined, undefined, 1]}
-          ref={moonRef}
-          scale={shapeScale}
           onClick={(event) => {
             event.stopPropagation();
             focusMoon();
           }}
         >
           <ambientLight intensity={0.03} />
-          <sphereGeometry args={[visualRadius, 32, 32]} />
-          <meshStandardMaterial
-            map={surfaceMap ?? undefined}
-            color={surfaceMap ? 0xffffff : bodyDef.textures.placeholder}
-          />
-        </instancedMesh>
+          <mesh visible={!modelReady} scale={shapeScale}>
+            <sphereGeometry args={[visualRadius, 32, 32]} />
+            <meshStandardMaterial
+              map={surfaceMap ?? undefined}
+              color={surfaceMap ? 0xffffff : bodyDef.textures.placeholder}
+            />
+          </mesh>
+          {shouldLoadModel && bodyDef.model?.path ? (
+            <Suspense fallback={null}>
+              <LazyMoonModel
+                path={bodyDef.model.path}
+                visualRadius={visualRadius}
+                maxShapeScale={maxShapeScale}
+                onReady={markModelReady}
+              />
+            </Suspense>
+          ) : null}
+        </group>
 
         <PlanetLabel
           position={[0, labelHeight, 0]}

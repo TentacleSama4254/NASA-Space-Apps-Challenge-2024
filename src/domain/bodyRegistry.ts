@@ -290,6 +290,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 35,
     },
     periodDays: 0.31891,
+    model: {
+      path: '/models/moons/phobos.glb',
+      credit: 'NASA/JPL-Caltech',
+    },
   },
 
   deimos: {
@@ -314,6 +318,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 140,
     },
     periodDays: 1.26244,
+    model: {
+      path: '/models/moons/deimos.glb',
+      credit: 'NASA/JPL-Caltech',
+    },
   },
 
   io: {

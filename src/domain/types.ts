@@ -11,6 +11,14 @@ export interface TextureTier {
   high: string;
 }
 
+/** Optional renderable 3D asset for irregular bodies. */
+export interface ModelAsset {
+  /** Public asset path, loaded only when the body is inspected closely */
+  path: string;
+  /** Human-readable source/credit for asset audits and attribution */
+  credit?: string;
+}
+
 /** Complete physical and visual definition of a solar system body */
 export interface BodyDefinition {
   /** App-internal identifier (lowercase, e.g. "earth", "moon") */
@@ -26,6 +34,7 @@ export interface BodyDefinition {
   /** Hex color for the label dot (replaces runtime extractColors) */
   labelColor: string;
   textures: TextureTier;
+  model?: ModelAsset;
   /** Keplerian fallback elements used when ephemeris data is unavailable */
   keplerianElements?: KeplerianElements;
   /** Orbital period in Earth days (used for fallback propagation) */

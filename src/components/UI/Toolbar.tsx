@@ -79,7 +79,7 @@ const ToolbarBubble: React.FC<ToolbarBubbleProps> = ({
         pointerEvents: "auto",
         display: "flex",
         alignItems: "center",
-        gap: isExpanded ? 10 : 6,
+        gap: isExpanded ? 10 : 0,
         padding: "8px 10px",
         borderRadius: 999,
         border: "1px solid rgba(255,255,255,0.1)",
@@ -93,12 +93,16 @@ const ToolbarBubble: React.FC<ToolbarBubbleProps> = ({
         transition: "gap 220ms ease, padding 220ms ease",
       }}
     >
-      {buttons.map((button) => (
+      {buttons.map((button, index) => (
         <button
           key={button.label}
           type="button"
           title={button.title}
-          style={iconButtonStyle}
+          style={{
+            ...iconButtonStyle,
+            marginRight: !isExpanded && index === 0 ? 6 : 0,
+            transition: "margin 220ms ease",
+          }}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
