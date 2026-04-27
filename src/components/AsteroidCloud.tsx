@@ -54,9 +54,9 @@ function useAsteroidCatalog(): AsteroidCatalogState {
 
     async function load(): Promise<void> {
       const [mainBelt, neo, pha, closeApproaches] = await Promise.all([
-        fetchAsteroidCatalog('main-belt', 12_000),
-        fetchAsteroidCatalog('neo', 4_000),
-        fetchAsteroidCatalog('pha', 1_500),
+        fetchAsteroidCatalog('main-belt', 20_000),
+        fetchAsteroidCatalog('neo', 8_000),
+        fetchAsteroidCatalog('pha', 2_500),
         fetchCloseApproaches(365, 0.08),
       ]);
 
@@ -81,6 +81,28 @@ function useAsteroidCatalog(): AsteroidCatalogState {
   }, []);
 
   return state;
+}
+
+function makeCircleSpriteTexture(): THREE.Texture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const context = canvas.getContext('2d');
+  if (!context) return new THREE.Texture();
+
+  const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 31);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.36, 'rgba(255,255,255,0.88)');
+  gradient.addColorStop(0.72, 'rgba(255,255,255,0.24)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 64, 64);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 function addCatalog(
@@ -195,6 +217,7 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
   const { bodies, closeApproachMap } = useVisibleAsteroids(catalog, toggles);
   const pointsRef = useRef<THREE.Points>(null);
   const lastUpdate = useRef(0);
+  const circleTexture = useMemo(() => makeCircleSpriteTexture(), []);
 
   const geometry = useMemo(() => {
     const positions = new Float32Array(Math.max(1, bodies.length) * 3);
@@ -229,6 +252,12 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
       geometry.dispose();
     };
   }, [geometry]);
+
+  useEffect(() => {
+    return () => {
+      circleTexture.dispose();
+    };
+  }, [circleTexture]);
 
   useEffect(() => {
     onStatsChange?.({ visible: bodies.length, loading: catalog.loading });
@@ -268,11 +297,13 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
     <>
       <points ref={pointsRef} geometry={geometry}>
         <pointsMaterial
-          size={3.1}
+          map={circleTexture}
+          alphaTest={0.02}
+          size={4.2}
           sizeAttenuation
           vertexColors
           transparent
-          opacity={0.62}
+          opacity={0.68}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />

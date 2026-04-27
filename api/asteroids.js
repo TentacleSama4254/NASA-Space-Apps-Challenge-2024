@@ -9,9 +9,9 @@ import {
 } from './_space-data.mjs';
 
 const DEFAULT_LIMITS = {
-  'main-belt': 12_000,
-  neo: 4_000,
-  pha: 1_500,
+  'main-belt': 20_000,
+  neo: 8_000,
+  pha: 2_500,
 };
 
 export default async function handler(req, res) {
@@ -48,4 +48,3 @@ export default async function handler(req, res) {
     }, 120);
   }
 }
-

@@ -31,6 +31,20 @@ const asteroidControls: Array<{
   { key: "closeApproaches", label: "Close", color: "#ff6b5a" },
 ];
 
+const iconButtonStyle: React.CSSProperties = {
+  width: 32,
+  height: 32,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0,
+  border: 0,
+  borderRadius: 999,
+  background: "rgba(255,255,255,0.08)",
+  color: "rgba(255,255,255,0.84)",
+  cursor: "pointer",
+};
+
 const ToolbarBubble: React.FC<ToolbarBubbleProps> = ({
   asteroidLayers,
   onAsteroidLayersChange,
@@ -44,124 +58,95 @@ const ToolbarBubble: React.FC<ToolbarBubbleProps> = ({
       bottom: 28,
       zIndex: 50,
       transform: "translateX(-50%)",
+      pointerEvents: "auto",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "8px 10px",
+      borderRadius: 999,
+      border: "1px solid rgba(255,255,255,0.1)",
+      background: "linear-gradient(135deg, rgba(44,44,44,0.82), rgba(8,8,8,0.92))",
+      color: "white",
+      boxShadow: "0 16px 36px rgba(0,0,0,0.38)",
+      backdropFilter: "blur(12px)",
+      maxWidth: "calc(100vw - 24px)",
+      flexWrap: "wrap",
+      justifyContent: "center",
     }}
   >
-    <div
-      className="group"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "8px 10px",
-        borderRadius: 8,
-        border: "1px solid rgba(255,255,255,0.1)",
-        background:
-          "rgba(12, 13, 15, 0.88)",
-        color: "white",
-        boxShadow: "0 16px 36px rgba(0,0,0,0.4)",
-        backdropFilter: "blur(12px)",
-        maxWidth: "calc(100vw - 24px)",
-        flexWrap: "wrap",
-        justifyContent: "center",
-      }}
-    >
-      {buttons.map((button) => (
-        <button
-          key={button.label}
-          type="button"
-          title={button.title}
+    {buttons.map((button) => (
+      <button
+        key={button.label}
+        type="button"
+        title={button.title}
+        style={iconButtonStyle}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          style={{ width: 18, height: 18, flexShrink: 0 }}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d={button.path} />
+        </svg>
+      </button>
+    ))}
+    {asteroidControls.map((control) => {
+      const checked = asteroidLayers[control.key];
+      return (
+        <label
+          key={control.key}
+          title={`Toggle ${control.label}`}
           style={{
-            width: 38,
-            height: 38,
+            height: 32,
             display: "inline-flex",
             alignItems: "center",
-            justifyContent: "center",
-            padding: 0,
-            border: 0,
-            borderRadius: 999,
-            background: "transparent",
-            color: "rgba(255,255,255,0.78)",
+            gap: 6,
+            color: checked ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.46)",
+            fontSize: 11,
+            lineHeight: 1,
+            fontFamily: "'Space Mono', monospace",
+            whiteSpace: "nowrap",
             cursor: "pointer",
+            userSelect: "none",
           }}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            style={{ width: 20, height: 20, flexShrink: 0 }}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d={button.path} />
-          </svg>
-        </button>
-      ))}
-      <div
-        aria-hidden="true"
-        style={{
-          width: 1,
-          height: 28,
-          background: "rgba(255,255,255,0.12)",
-          margin: "0 2px",
-        }}
-      />
-      {asteroidControls.map((control) => {
-        const checked = asteroidLayers[control.key];
-        return (
-          <label
-            key={control.key}
-            style={{
-              height: 34,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "0 9px",
-              borderRadius: 7,
-              border: `1px solid ${checked ? control.color : "rgba(255,255,255,0.12)"}`,
-              background: checked ? "rgba(255,255,255,0.08)" : "transparent",
-              color: checked ? "#ffffff" : "rgba(255,255,255,0.62)",
-              fontSize: 12,
-              fontFamily: "'Space Mono', monospace",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              userSelect: "none",
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={() => {
+              onAsteroidLayersChange((current) => ({
+                ...current,
+                [control.key]: !current[control.key],
+              }));
             }}
-          >
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={() => {
-                onAsteroidLayersChange((current) => ({
-                  ...current,
-                  [control.key]: !current[control.key],
-                }));
-              }}
-              style={{
-                width: 13,
-                height: 13,
-                accentColor: control.color,
-                margin: 0,
-              }}
-            />
-            <span>{control.label}</span>
-          </label>
-        );
-      })}
-      <div
-        style={{
-          minWidth: 96,
-          textAlign: "center",
-          color: "rgba(255,255,255,0.72)",
-          fontSize: 12,
-          fontFamily: "'Space Mono', monospace",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {asteroidStats.loading
-          ? "Loading..."
-          : `${asteroidStats.visible.toLocaleString()} objects`}
-      </div>
-    </div>
+            style={{
+              width: 12,
+              height: 12,
+              accentColor: control.color,
+              margin: 0,
+            }}
+          />
+          <span>{control.label}</span>
+        </label>
+      );
+    })}
+    <span
+      style={{
+        minWidth: 92,
+        textAlign: "center",
+        color: "rgba(255,255,255,0.58)",
+        fontSize: 11,
+        fontFamily: "'Space Mono', monospace",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {asteroidStats.loading
+        ? "Loading..."
+        : `${asteroidStats.visible.toLocaleString()} objects`}
+    </span>
   </nav>
 );
 

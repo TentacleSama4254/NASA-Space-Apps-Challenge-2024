@@ -15,9 +15,9 @@ interface JplArrayResponse {
 }
 
 const DEFAULT_LIMITS: Record<AsteroidCatalogKind, number> = {
-  'main-belt': 12_000,
-  neo: 4_000,
-  pha: 1_500,
+  'main-belt': 20_000,
+  neo: 8_000,
+  pha: 2_500,
 };
 
 const SBDB_QUERY_URL = 'https://ssd-api.jpl.nasa.gov/sbdb_query.api';
