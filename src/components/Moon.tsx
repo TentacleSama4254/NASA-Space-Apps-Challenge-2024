@@ -6,14 +6,11 @@
  * Earth's ephemeris/fallback position is used while data loads.
  */
 
-/* eslint-disable react-hooks/immutability -- three.js textures/materials are mutable GPU resources. */
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { OrbitalParams, SatelliteProps } from '../types';
 import { propagate } from '../utils/planetCalculations';
-import { earthSize } from './Earth';
 import OrbitLine from '../context/OrbitLine';
 import { BODIES } from '../domain/bodyRegistry';
 import { getBodyPosition, loadEphemerisForBody } from '../domain/ephemerisService';
@@ -21,13 +18,17 @@ import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 import { useCamera } from '../context/Camera';
 import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
+import PlanetLabel from './PlanetLabel';
+import { globalRefs } from '../context/GlobalRefs';
 
-const MOON_DEF = BODIES.moon;
+const MIN_VISIBLE_MOON_RADIUS = 0.01;
 
 const Satellite: React.FC<SatelliteProps> = ({
+  bodyId = 'moon',
   planetPosition = new THREE.Vector3(0, 0, 0),
   orbit,
 }) => {
+  const bodyDef = BODIES[bodyId] ?? BODIES.moon;
   const simClock = useSimClock();
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
@@ -35,17 +36,20 @@ const Satellite: React.FC<SatelliteProps> = ({
 
   const groupRef = useRef<THREE.Group>(null);
   const moonRef = useRef<THREE.InstancedMesh>(null);
-  const centreRef = useRef(planetPosition.clone());
+  const worldPositionRef = useRef(new THREE.Vector3());
+  const opacityRef = useRef(1);
+  const [tagOpacity, setTagOpacity] = useState(1);
   const isFocused = focusedObject?.object === groupRef.current;
   const { texture: moonMap } = useProgressiveTexture({
-    lowSrc: MOON_DEF.textures.low,
-    highSrc: MOON_DEF.textures.high,
+    lowSrc: bodyDef.textures.low,
+    highSrc: bodyDef.textures.high,
     loadHigh: isFocused,
   });
 
-  const kep = MOON_DEF.keplerianElements!;
-  const periodDays = MOON_DEF.periodDays!;
+  const kep = bodyDef.keplerianElements!;
+  const periodDays = bodyDef.periodDays!;
   const periodSec  = periodDays * 86400;
+  const visualRadius = Math.max(bodyDef.radiusKm / 100000, MIN_VISIBLE_MOON_RADIUS);
 
   const orbitalParams: OrbitalParams = orbit ?? {
     a: kep.a,
@@ -56,23 +60,32 @@ const Satellite: React.FC<SatelliteProps> = ({
   };
 
   useEffect(() => {
-    if (isFocused) loadEphemerisForBody('moon');
-  }, [isFocused]);
+    loadEphemerisForBody(bodyDef.id);
+  }, [bodyDef.id]);
 
-  useFrame(({ clock: r3fClock }) => {
+  useEffect(() => {
+    globalRefs.push(groupRef);
+    return () => {
+      const idx = globalRefs.indexOf(groupRef);
+      if (idx !== -1) globalRefs.splice(idx, 1);
+    };
+  }, []);
+
+  useFrame(({ clock: r3fClock, camera }) => {
     if (!groupRef.current || !moonRef.current) return;
 
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
 
     // ── Position (ephemeris → fallback) ───────────────────────────────────────
-    const ephPos = getBodyPosition('moon', simTimeMs);
+    const ephPos = getBodyPosition(bodyDef.id, simTimeMs);
 
     if (ephPos) {
-      const earthPos = getBodyPosition('earth', simTimeMs) ?? planetPosition;
-      groupRef.current.position.copy(ephPos.clone().sub(earthPos));
-      centreRef.current.set(0, 0, 0);
+      const parentPos =
+        (bodyDef.parentId ? getBodyPosition(bodyDef.parentId, simTimeMs) : null) ??
+        planetPosition;
+      groupRef.current.position.copy(ephPos.clone().sub(parentPos));
     } else {
-      // Fallback: Moon is nested under Earth's moving group, so use local coords.
+      // Fallback: satellites are nested under their parent moving group.
       const secFromJ2000 = (simTimeMs - J2000_UNIX_MS) / 1000;
       const ma0OffsetSec = ((kep.ma0 ?? 0) / 360) * periodSec;
       const localPos = propagate(
@@ -86,10 +99,17 @@ const Satellite: React.FC<SatelliteProps> = ({
         periodSec,
       );
       groupRef.current.position.copy(localPos);
-      centreRef.current.set(0, 0, 0);
     }
 
     moonRef.current.rotation.y = (r3fClock.getElapsedTime() / 6) * 0.037;
+
+    groupRef.current.getWorldPosition(worldPositionRef.current);
+    const dist = camera.position.distanceTo(worldPositionRef.current);
+    const nextOpacity = dist < 55 ? 1 : Math.max(0, 1 - (dist - 55) / 80);
+    if (Math.abs(nextOpacity - opacityRef.current) > 0.05) {
+      opacityRef.current = nextOpacity;
+      setTagOpacity(nextOpacity);
+    }
   });
 
   const focusMoon = () => {
@@ -100,9 +120,9 @@ const Satellite: React.FC<SatelliteProps> = ({
 
   return (
     <>
-      <group ref={groupRef} userData={{ diameter: earthSize * 0.54 }}>
+      <group ref={groupRef} userData={{ diameter: visualRadius * 2 }}>
         <instancedMesh
-          userData={{ type: 'Moon' }}
+          userData={{ type: bodyDef.name }}
           type="kinematicPosition"
           args={[undefined, undefined, 1]}
           ref={moonRef}
@@ -112,21 +132,29 @@ const Satellite: React.FC<SatelliteProps> = ({
           }}
         >
           <ambientLight intensity={0.03} />
-          <sphereGeometry args={[earthSize * 0.27, 32, 32]} />
+          <sphereGeometry args={[visualRadius, 32, 32]} />
           <meshStandardMaterial
             map={moonMap ?? undefined}
-            color={moonMap ? 0xffffff : MOON_DEF.textures.placeholder}
+            color={moonMap ? 0xffffff : bodyDef.textures.placeholder}
           />
         </instancedMesh>
+
+        <PlanetLabel
+          position={[0, visualRadius * 1.65, 0]}
+          label={bodyDef.name}
+          dotColor={bodyDef.labelColor}
+          opacity={tagOpacity}
+          onClick={focusMoon}
+          occlude={globalRefs.filter((ref) => ref !== groupRef)}
+        />
       </group>
 
       <OrbitLine
         orbitalParams={orbitalParams}
-        centrePosition={centreRef.current}
+        centrePosition={new THREE.Vector3(0, 0, 0)}
         planetRef={groupRef}
         isFocused={isFocused}
         periodDays={periodDays}
-        bodyId="moon"
         meanAnomalyDeg={kep.ma0 ?? 0}
       />
     </>

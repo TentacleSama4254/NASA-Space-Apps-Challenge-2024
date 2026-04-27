@@ -12,7 +12,7 @@
 
 /* eslint-disable react-hooks/immutability -- three.js textures/materials are mutable GPU resources. */
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
@@ -26,7 +26,7 @@ import { globalRefs } from '../context/GlobalRefs';
 import { BODIES } from '../domain/bodyRegistry';
 import { getBodyPosition, loadEphemerisForBody } from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
-import { J2000_UNIX_MS } from '../config/constants';
+import { J2000_UNIX_MS, SUN_OFFSET } from '../config/constants';
 import { useCamera } from '../context/Camera';
 import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
 
@@ -50,6 +50,72 @@ const NORMAL_MAP   = '/textures/8k_earth_normal_map.jpg';
 interface DetailProps {
   earthRef: React.RefObject<THREE.Mesh | null>;
 }
+
+interface NightLightsProps {
+  lightsMap: THREE.Texture;
+}
+
+const NightLightsLayer: React.FC<NightLightsProps> = ({ lightsMap }) => {
+  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const uniforms = useMemo(
+    () => ({
+      map: { value: lightsMap },
+      sunPosition: { value: SUN_OFFSET.clone() },
+      opacity: { value: 0.88 },
+    }),
+    [lightsMap],
+  );
+
+  useFrame(() => {
+    materialRef.current?.uniforms.sunPosition.value.copy(SUN_OFFSET);
+  });
+
+  return (
+    <mesh>
+      <sphereGeometry args={[earthSize * 1.003, 132, 132]} />
+      <shaderMaterial
+        ref={materialRef}
+        uniforms={uniforms}
+        vertexShader={`
+          varying vec2 vUv;
+          varying vec3 vWorldPosition;
+          varying vec3 vWorldNormal;
+
+          void main() {
+            vUv = uv;
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldPosition = worldPosition.xyz;
+            vWorldNormal = normalize(mat3(modelMatrix) * normal);
+            gl_Position = projectionMatrix * viewMatrix * worldPosition;
+          }
+        `}
+        fragmentShader={`
+          uniform sampler2D map;
+          uniform vec3 sunPosition;
+          uniform float opacity;
+
+          varying vec2 vUv;
+          varying vec3 vWorldPosition;
+          varying vec3 vWorldNormal;
+
+          void main() {
+            vec3 lightDirection = normalize(sunPosition - vWorldPosition);
+            float lightAmount = dot(normalize(vWorldNormal), lightDirection);
+            float nightMask = smoothstep(0.12, -0.18, lightAmount);
+            vec3 cityLights = texture2D(map, vUv).rgb;
+            float luminance = dot(cityLights, vec3(0.299, 0.587, 0.114));
+            float alpha = smoothstep(0.03, 0.55, luminance) * nightMask * opacity;
+
+            gl_FragColor = vec4(cityLights * 1.65, alpha);
+          }
+        `}
+        transparent
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </mesh>
+  );
+};
 
 const EarthDetailLayer: React.FC<DetailProps> = ({ earthRef }) => {
   const { gl } = useThree();
@@ -89,16 +155,7 @@ const EarthDetailLayer: React.FC<DetailProps> = ({ earthRef }) => {
         />
       </mesh>
 
-      <mesh>
-        <sphereGeometry args={[earthSize * 1.002, 132, 132]} />
-        <meshPhongMaterial
-          map={lightsMap}
-          transparent
-          opacity={0.55}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
+      <NightLightsLayer lightsMap={lightsMap} />
     </>
   );
 };

@@ -32,6 +32,7 @@ const JD_UNIX_EPOCH = 2440587.5;
  * center = Horizons CENTER parameter:
  *   '500@10'  = heliocentric (Sun center)
  *   '500@399' = geocentric   (Earth center, used for Moon)
+ *   '500@599' = Jupiter-centered, etc. for natural satellites
  */
 const BODIES = [
   { id: 'mercury', horizonsId: 199, center: '500@10',  step: '1d' },
@@ -42,8 +43,18 @@ const BODIES = [
   { id: 'saturn',  horizonsId: 699, center: '500@10',  step: '1d' },
   { id: 'uranus',  horizonsId: 799, center: '500@10',  step: '1d' },
   { id: 'neptune', horizonsId: 899, center: '500@10',  step: '1d' },
-  // Moon at 6-hour steps for smooth sub-monthly interpolation
+  // Natural satellites use shorter steps for smooth sub-monthly interpolation.
   { id: 'moon',    horizonsId: 301, center: '500@399', step: '6h' },
+  { id: 'phobos',  horizonsId: 401, center: '500@499', step: '3h' },
+  { id: 'deimos',  horizonsId: 402, center: '500@499', step: '6h' },
+  { id: 'io',       horizonsId: 501, center: '500@599', step: '3h' },
+  { id: 'europa',   horizonsId: 502, center: '500@599', step: '3h' },
+  { id: 'ganymede', horizonsId: 503, center: '500@599', step: '6h' },
+  { id: 'callisto', horizonsId: 504, center: '500@599', step: '6h' },
+  { id: 'titan',    horizonsId: 606, center: '500@699', step: '6h' },
+  { id: 'titania',  horizonsId: 703, center: '500@799', step: '6h' },
+  { id: 'oberon',   horizonsId: 704, center: '500@799', step: '6h' },
+  { id: 'triton',   horizonsId: 801, center: '500@899', step: '6h' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -58,6 +69,7 @@ function buildUrl(horizonsId, center, step) {
     `format=text`,
     `COMMAND='${horizonsId}'`,
     `CENTER='${center}'`,
+    `MAKE_EPHEM='YES'`,
     `EPHEM_TYPE=VECTORS`,
     `START_TIME='${START}'`,
     `STOP_TIME='${STOP}'`,

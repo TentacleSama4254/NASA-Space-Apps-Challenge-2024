@@ -73,17 +73,31 @@ const Scene = () => {
         <Earth orbit={PlanetData.earth.orbit}>
           <Moon />
         </Earth>
-        <SolarObj {...PlanetData.mars} />
-        <SolarObj {...PlanetData.jupiter} />
+        <SolarObj {...PlanetData.mars}>
+          <Moon bodyId="phobos" />
+          <Moon bodyId="deimos" />
+        </SolarObj>
+        <SolarObj {...PlanetData.jupiter}>
+          <Moon bodyId="io" />
+          <Moon bodyId="europa" />
+          <Moon bodyId="ganymede" />
+          <Moon bodyId="callisto" />
+        </SolarObj>
         <SolarObj {...PlanetData.saturn}>
+          <Moon bodyId="titan" />
           <SaturnRing
             texturePath="/textures/8k_saturn_ring_alpha.png"
             innerRadius={160000 / distanceScaleKm}
             outerRadius={320000 / distanceScaleKm}
           />
         </SolarObj>
-        <SolarObj {...PlanetData.uranus} />
-        <SolarObj {...PlanetData.neptune} />
+        <SolarObj {...PlanetData.uranus}>
+          <Moon bodyId="titania" />
+          <Moon bodyId="oberon" />
+        </SolarObj>
+        <SolarObj {...PlanetData.neptune}>
+          <Moon bodyId="triton" />
+        </SolarObj>
       </Sun>
 
       {ASTEROID_SAMPLE.map((props, i) => (

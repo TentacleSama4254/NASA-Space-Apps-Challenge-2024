@@ -16,7 +16,7 @@
 
 import * as THREE from 'three';
 import type { EphemerisSeries, StateVector } from './types';
-import { BODIES, ALL_BODY_IDS } from './bodyRegistry';
+import { BODIES, PRELOAD_BODY_IDS } from './bodyRegistry';
 import { DISTANCE_SCALE_KM, SUN_OFFSET } from '../config/constants';
 
 // ─── Internal cache ──────────────────────────────────────────────────────────
@@ -120,20 +120,20 @@ function loadBody(bodyId: string): void {
 
 /** Kick off ephemeris loading with optional deferred background bodies. */
 export function preloadEphemeris(
-  priorityIds: readonly string[] = ALL_BODY_IDS,
+  priorityIds: readonly string[] = PRELOAD_BODY_IDS,
   options: PreloadOptions = {},
 ): void {
   priorityIds.forEach(loadBody);
 
   if (!options.deferRest) {
-    ALL_BODY_IDS.filter((bodyId) => !priorityIds.includes(bodyId)).forEach(loadBody);
+    PRELOAD_BODY_IDS.filter((bodyId) => !priorityIds.includes(bodyId)).forEach(loadBody);
     return;
   }
 
   const delayMs = options.delayMs ?? 1200;
   const staggerMs = options.staggerMs ?? 450;
 
-  ALL_BODY_IDS
+  PRELOAD_BODY_IDS
     .filter((bodyId) => !priorityIds.includes(bodyId))
     .forEach((bodyId, index) => {
       window.setTimeout(() => {
@@ -167,7 +167,7 @@ export function isBodyLoaded(bodyId: string): boolean {
  * when the ephemeris data has not been loaded yet.
  *
  * - Heliocentric planets: position in scene units from origin, shifted by SUN_OFFSET.
- * - Moon: computed as Earth's absolute scene position + Moon's geocentric offset.
+ * - Moons: computed as parent body's absolute scene position + planetocentric offset.
  */
 export function getBodyPosition(
   bodyId: string,
@@ -181,11 +181,11 @@ export function getBodyPosition(
 
   const sceneOffset = eclipticToScene(posKm);
 
-  if (bodyId === 'moon') {
-    // Moon ephemeris is geocentric; compose with Earth's absolute position.
-    const earthPos = getBodyPosition('earth', simTimeMs);
-    if (!earthPos) return null;
-    return earthPos.clone().add(sceneOffset);
+  const body = BODIES[bodyId];
+  if (body?.type === 'moon' && body.parentId) {
+    const parentPos = getBodyPosition(body.parentId, simTimeMs);
+    if (!parentPos) return null;
+    return parentPos.clone().add(sceneOffset);
   }
 
   // All heliocentric bodies: add SUN_OFFSET so the Sun sits at SUN_OFFSET.
@@ -211,6 +211,13 @@ export function getOrbitPath(
   const periodMs = (body?.periodDays ?? 365) * 86400 * 1000;
   const half = periodMs / 2;
   const startMs = simTimeMs - half;
+  const endMs = simTimeMs + half;
+  const firstRecordMs = series.records[0].unixMs;
+  const lastRecordMs = series.records[series.records.length - 1].unixMs;
+
+  if (startMs < firstRecordMs || endMs > lastRecordMs) {
+    return null;
+  }
 
   const points: THREE.Vector3[] = [];
 

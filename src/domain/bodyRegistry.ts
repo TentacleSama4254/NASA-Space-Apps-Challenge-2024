@@ -229,6 +229,246 @@ export const BODIES: Record<string, BodyDefinition> = {
     },
     periodDays: 60189,
   },
+
+  phobos: {
+    id: 'phobos',
+    horizonsId: 401,
+    name: 'Phobos',
+    type: 'moon',
+    parentId: 'mars',
+    radiusKm: 11.1,
+    labelColor: '#9b8f84',
+    textures: {
+      placeholder: '#9b8f84',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 9376 / DISTANCE_SCALE_KM,
+      e: 0.0151,
+      inclination: 1.093,
+      omega: 0,
+      raan: 0,
+      ma0: 35,
+    },
+    periodDays: 0.31891,
+  },
+
+  deimos: {
+    id: 'deimos',
+    horizonsId: 402,
+    name: 'Deimos',
+    type: 'moon',
+    parentId: 'mars',
+    radiusKm: 6.2,
+    labelColor: '#aaa19a',
+    textures: {
+      placeholder: '#aaa19a',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 23463 / DISTANCE_SCALE_KM,
+      e: 0.00033,
+      inclination: 0.93,
+      omega: 0,
+      raan: 0,
+      ma0: 140,
+    },
+    periodDays: 1.26244,
+  },
+
+  io: {
+    id: 'io',
+    horizonsId: 501,
+    name: 'Io',
+    type: 'moon',
+    parentId: 'jupiter',
+    radiusKm: 1821.6,
+    labelColor: '#d9b15f',
+    textures: {
+      placeholder: '#d9b15f',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 421700 / DISTANCE_SCALE_KM,
+      e: 0.0041,
+      inclination: 0.05,
+      omega: 0,
+      raan: 0,
+      ma0: 20,
+    },
+    periodDays: 1.76914,
+  },
+
+  europa: {
+    id: 'europa',
+    horizonsId: 502,
+    name: 'Europa',
+    type: 'moon',
+    parentId: 'jupiter',
+    radiusKm: 1560.8,
+    labelColor: '#d8c7a4',
+    textures: {
+      placeholder: '#d8c7a4',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 671034 / DISTANCE_SCALE_KM,
+      e: 0.0094,
+      inclination: 0.47,
+      omega: 0,
+      raan: 0,
+      ma0: 90,
+    },
+    periodDays: 3.55118,
+  },
+
+  ganymede: {
+    id: 'ganymede',
+    horizonsId: 503,
+    name: 'Ganymede',
+    type: 'moon',
+    parentId: 'jupiter',
+    radiusKm: 2634.1,
+    labelColor: '#b6aa96',
+    textures: {
+      placeholder: '#b6aa96',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 1070412 / DISTANCE_SCALE_KM,
+      e: 0.0013,
+      inclination: 0.2,
+      omega: 0,
+      raan: 0,
+      ma0: 180,
+    },
+    periodDays: 7.15455,
+  },
+
+  callisto: {
+    id: 'callisto',
+    horizonsId: 504,
+    name: 'Callisto',
+    type: 'moon',
+    parentId: 'jupiter',
+    radiusKm: 2410.3,
+    labelColor: '#8d8170',
+    textures: {
+      placeholder: '#8d8170',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 1882709 / DISTANCE_SCALE_KM,
+      e: 0.0074,
+      inclination: 0.192,
+      omega: 0,
+      raan: 0,
+      ma0: 270,
+    },
+    periodDays: 16.68902,
+  },
+
+  titan: {
+    id: 'titan',
+    horizonsId: 606,
+    name: 'Titan',
+    type: 'moon',
+    parentId: 'saturn',
+    radiusKm: 2574.7,
+    labelColor: '#c99252',
+    textures: {
+      placeholder: '#c99252',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 1221870 / DISTANCE_SCALE_KM,
+      e: 0.0288,
+      inclination: 0.349,
+      omega: 0,
+      raan: 0,
+      ma0: 60,
+    },
+    periodDays: 15.94542,
+  },
+
+  titania: {
+    id: 'titania',
+    horizonsId: 703,
+    name: 'Titania',
+    type: 'moon',
+    parentId: 'uranus',
+    radiusKm: 788.9,
+    labelColor: '#b9b9b9',
+    textures: {
+      placeholder: '#b9b9b9',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 436300 / DISTANCE_SCALE_KM,
+      e: 0.0011,
+      inclination: 0.079,
+      omega: 0,
+      raan: 0,
+      ma0: 145,
+    },
+    periodDays: 8.70587,
+  },
+
+  oberon: {
+    id: 'oberon',
+    horizonsId: 704,
+    name: 'Oberon',
+    type: 'moon',
+    parentId: 'uranus',
+    radiusKm: 761.4,
+    labelColor: '#9c9994',
+    textures: {
+      placeholder: '#9c9994',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 583500 / DISTANCE_SCALE_KM,
+      e: 0.0014,
+      inclination: 0.068,
+      omega: 0,
+      raan: 0,
+      ma0: 235,
+    },
+    periodDays: 13.46323,
+  },
+
+  triton: {
+    id: 'triton',
+    horizonsId: 801,
+    name: 'Triton',
+    type: 'moon',
+    parentId: 'neptune',
+    radiusKm: 1353.4,
+    labelColor: '#d0c8bc',
+    textures: {
+      placeholder: '#d0c8bc',
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: 354759 / DISTANCE_SCALE_KM,
+      e: 0.000016,
+      inclination: 156.865,
+      omega: 0,
+      raan: 0,
+      ma0: 310,
+    },
+    periodDays: 5.87685,
+  },
 };
 
 /** All planet ids in order from Sun */
@@ -237,5 +477,18 @@ export const PLANET_IDS = [
   'jupiter', 'saturn', 'uranus', 'neptune',
 ] as const;
 
-/** All body ids that the app fetches ephemeris data for */
-export const ALL_BODY_IDS = [...PLANET_IDS, 'moon'] as const;
+/** Major moon ids rendered when their parent planet is focused/nearby. */
+export const MAJOR_MOON_IDS = [
+  'moon',
+  'phobos', 'deimos',
+  'io', 'europa', 'ganymede', 'callisto',
+  'titan',
+  'titania', 'oberon',
+  'triton',
+] as const;
+
+/** Top-level body ids that are safe to preload in the background. */
+export const PRELOAD_BODY_IDS = [...PLANET_IDS, 'moon'] as const;
+
+/** All body ids known to the app. */
+export const ALL_BODY_IDS = [...PLANET_IDS, ...MAJOR_MOON_IDS] as const;

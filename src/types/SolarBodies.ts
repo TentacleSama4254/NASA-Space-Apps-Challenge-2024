@@ -1,7 +1,7 @@
 import { Vector3 } from "@react-three/fiber";
 import * as THREE from "three";
 import Satellite from "../components/Moon";
-import { ReactElement } from "react";
+import { ReactElement, ReactNode } from "react";
 
 export interface PlanetDataType {
   name: string;
@@ -13,7 +13,7 @@ export interface PlanetDataType {
   texture_path1 ?: string;
   texture_path_ring ?: string;
   centrePosition?: THREE.Vector3;
-  children?: ReactElement<typeof Satellite>;
+  children?: ReactNode;
 }
 
 export interface EarthProps {
@@ -23,6 +23,7 @@ export interface EarthProps {
 }
 
 export interface SatelliteProps {
+  bodyId?: string;
   planetPosition?: THREE.Vector3;
   orbit?: OrbitalParams;
 }
