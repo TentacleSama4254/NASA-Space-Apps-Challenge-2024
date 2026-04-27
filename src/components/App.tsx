@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -6,47 +6,60 @@ import { Physics } from '@react-three/rapier';
 import Scene from './Scene';
 import Loader from './Loader';
 import ToolbarBubble from './UI/Toolbar';
+import SimulationHud from './UI/SimulationHud';
 import ScaleBar from './Scale-Bar';
 import { SimulationClockProvider } from '../context/SimulationClock';
+import type { AsteroidLayerToggles } from './AsteroidCloud';
 import '../index.css';
 
-const App = () => (
-  <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-    <Canvas
-      style={{ position: 'absolute', inset: 0 }}
-      camera={{ position: [0, 50, 150], near: 0.0001, far: 600000 }}
-    >
-      <color attach="background" args={['black']} />
-      <ambientLight intensity={0.04} />
+const App = () => {
+  const [asteroidLayers, setAsteroidLayers] = useState<AsteroidLayerToggles>({
+    mainBelt: true,
+    nearEarth: true,
+    pha: true,
+    closeApproaches: true,
+  });
+  const [asteroidStats, setAsteroidStats] = useState({ visible: 0, loading: true });
+  const handleAsteroidStatsChange = useCallback((stats: { visible: number; loading: boolean }) => {
+    setAsteroidStats(stats);
+  }, []);
 
-      <OrbitControls maxDistance={24500} minDistance={0.0005} makeDefault />
+  return (
+    <SimulationClockProvider>
+      <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      <Canvas
+        style={{ position: 'absolute', inset: 0 }}
+        camera={{ position: [0, 50, 150], near: 0.0001, far: 600000 }}
+      >
+        <color attach="background" args={['black']} />
+        <ambientLight intensity={0.04} />
 
-      {/*
-        SimulationClockProvider must be inside Canvas so it can use useFrame.
-        It wraps both Scene and the loading indicator.
-      */}
-      <SimulationClockProvider>
-        {/*
-          The outer Suspense shows the Loader (progress bar) while any
-          useLoader call inside Scene is still pending.  Each planet also
-          wraps its heavy detail layers in inner Suspense boundaries so
-          they appear one by one as textures complete.
-        */}
+        <OrbitControls maxDistance={24500} minDistance={0.0005} makeDefault />
+
         <Suspense fallback={<Loader />}>
           <Physics gravity={[0, 0, 0]}>
-            <Scene />
+            <Scene
+              asteroidLayers={asteroidLayers}
+              onAsteroidStatsChange={handleAsteroidStatsChange}
+            />
           </Physics>
         </Suspense>
-      </SimulationClockProvider>
 
-      <EffectComposer>
-        <Bloom luminanceThreshold={0.14} luminanceSmoothing={0.9} intensity={0.85} height={300} />
-      </EffectComposer>
-    </Canvas>
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.14} luminanceSmoothing={0.9} intensity={0.85} height={300} />
+        </EffectComposer>
+      </Canvas>
 
-    <ToolbarBubble />
-    <ScaleBar />
-  </div>
-);
+      <SimulationHud />
+      <ToolbarBubble
+        asteroidLayers={asteroidLayers}
+        onAsteroidLayersChange={setAsteroidLayers}
+        asteroidStats={asteroidStats}
+      />
+      <ScaleBar />
+      </div>
+    </SimulationClockProvider>
+  );
+};
 
 export default App;

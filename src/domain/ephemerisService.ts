@@ -24,6 +24,7 @@ import { DISTANCE_SCALE_KM, SUN_OFFSET } from '../config/constants';
 const seriesCache = new Map<string, EphemerisSeries>();
 const loadingSet = new Set<string>();
 const listeners = new Set<(bodyId: string) => void>();
+const MIN_SMOOTH_SAMPLES_PER_ORBIT = 96;
 
 interface PreloadOptions {
   deferRest?: boolean;
@@ -176,6 +177,23 @@ export function hasFullOrbitCoverage(bodyId: string, simTimeMs: number): boolean
   return startMs >= firstRecordMs && endMs <= lastRecordMs;
 }
 
+/** Returns true when interpolation cadence is dense enough to avoid polygonal motion. */
+export function hasSmoothEphemerisCoverage(bodyId: string, simTimeMs: number): boolean {
+  const series = seriesCache.get(bodyId);
+  if (!series || series.records.length < 3) return false;
+
+  const body = BODIES[bodyId];
+  const periodMs = (body?.periodDays ?? 365) * 86400 * 1000;
+  const firstRecordMs = series.records[0].unixMs;
+  const lastRecordMs = series.records[series.records.length - 1].unixMs;
+
+  if (simTimeMs < firstRecordMs || simTimeMs > lastRecordMs) return false;
+
+  const averageStepMs = (lastRecordMs - firstRecordMs) / (series.records.length - 1);
+  const samplesPerOrbit = periodMs / averageStepMs;
+  return samplesPerOrbit >= MIN_SMOOTH_SAMPLES_PER_ORBIT;
+}
+
 // ─── Public position API ──────────────────────────────────────────────────────
 
 /**
@@ -222,6 +240,8 @@ export function getBodyPositionRelativeToParent(
     return getBodyPosition(bodyId, simTimeMs);
   }
 
+  if (!hasSmoothEphemerisCoverage(bodyId, simTimeMs)) return null;
+
   const series = seriesCache.get(bodyId);
   if (!series) return null;
 
@@ -245,7 +265,7 @@ export function getOrbitPath(
   if (!series || series.records.length < 3) return null;
 
   const body = BODIES[bodyId];
-  if (!hasFullOrbitCoverage(bodyId, simTimeMs)) {
+  if (!hasSmoothEphemerisCoverage(bodyId, simTimeMs) || !hasFullOrbitCoverage(bodyId, simTimeMs)) {
     return null;
   }
 
@@ -282,7 +302,7 @@ export function getRelativeOrbitPath(
   const body = BODIES[bodyId];
   if (body?.type !== 'moon' || !body.parentId) return getOrbitPath(bodyId, simTimeMs, samples);
 
-  if (!hasFullOrbitCoverage(bodyId, simTimeMs)) {
+  if (!hasSmoothEphemerisCoverage(bodyId, simTimeMs) || !hasFullOrbitCoverage(bodyId, simTimeMs)) {
     return null;
   }
 

@@ -25,6 +25,7 @@ import PlanetLabel from './PlanetLabel';
 import { globalRefs } from '../context/GlobalRefs';
 
 const MIN_VISIBLE_MOON_RADIUS = 0.01;
+const IRREGULAR_RADIUS_KM = 400;
 
 function hashString(value: string): number {
   let hash = 2166136261;
@@ -90,6 +91,16 @@ function makeProceduralMoonTexture(bodyId: string, baseColor: string): THREE.Can
   return texture;
 }
 
+function makeIrregularScale(bodyId: string, radiusKm: number): [number, number, number] {
+  if (radiusKm >= IRREGULAR_RADIUS_KM) return [1, 1, 1];
+
+  const random = randomFromSeed(hashString(`${bodyId}-shape`));
+  const x = 1.08 + random() * 0.55;
+  const y = 0.68 + random() * 0.32;
+  const z = 0.82 + random() * 0.42;
+  return [x, y, z];
+}
+
 const Satellite: React.FC<SatelliteProps> = ({
   bodyId = 'moon',
   orbit,
@@ -122,6 +133,12 @@ const Satellite: React.FC<SatelliteProps> = ({
   const periodDays = bodyDef.periodDays!;
   const periodSec  = periodDays * 86400;
   const visualRadius = Math.max(bodyDef.radiusKm / 100000, MIN_VISIBLE_MOON_RADIUS);
+  const shapeScale = useMemo(
+    () => makeIrregularScale(bodyDef.id, bodyDef.radiusKm),
+    [bodyDef.id, bodyDef.radiusKm],
+  );
+  const maxShapeScale = Math.max(...shapeScale);
+  const labelHeight = visualRadius * maxShapeScale * 1.65;
 
   const orbitalParams: OrbitalParams = orbit ?? {
     a: kep.a,
@@ -195,12 +212,13 @@ const Satellite: React.FC<SatelliteProps> = ({
 
   return (
     <>
-      <group ref={groupRef} userData={{ diameter: visualRadius * 2 }}>
+      <group ref={groupRef} userData={{ diameter: visualRadius * 2 * maxShapeScale }}>
         <instancedMesh
           userData={{ type: bodyDef.name }}
           type="kinematicPosition"
           args={[undefined, undefined, 1]}
           ref={moonRef}
+          scale={shapeScale}
           onClick={(event) => {
             event.stopPropagation();
             focusMoon();
@@ -215,7 +233,7 @@ const Satellite: React.FC<SatelliteProps> = ({
         </instancedMesh>
 
         <PlanetLabel
-          position={[0, visualRadius * 1.65, 0]}
+          position={[0, labelHeight, 0]}
           label={bodyDef.name}
           dotColor={bodyDef.labelColor}
           opacity={tagOpacity}

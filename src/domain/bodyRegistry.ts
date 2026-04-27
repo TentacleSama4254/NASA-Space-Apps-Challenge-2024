@@ -582,6 +582,18 @@ export const MOON_IDS_BY_PARENT = {
   neptune: ['naiad', 'thalassa', 'despina', 'galatea', 'larissa', 'proteus', 'triton', 'nereid'],
 } as const;
 
+/** Confirmed planetary moon counts from JPL SSD discovery circumstances. */
+export const PLANET_MOON_COUNTS = {
+  mercury: 0,
+  venus: 0,
+  earth: 1,
+  mars: 2,
+  jupiter: 115,
+  saturn: 292,
+  uranus: 29,
+  neptune: 16,
+} as const;
+
 /** Body ids with checked-in Horizons JSON files. Other rendered moons use fallback elements. */
 export const EPHEMERIS_BODY_IDS = [
   ...PLANET_IDS,

@@ -1,4 +1,11 @@
 import React from "react";
+import type { AsteroidLayerToggles } from "../AsteroidCloud";
+
+interface ToolbarBubbleProps {
+  asteroidLayers: AsteroidLayerToggles;
+  onAsteroidLayersChange: React.Dispatch<React.SetStateAction<AsteroidLayerToggles>>;
+  asteroidStats: { visible: number; loading: boolean };
+}
 
 const buttons = [
   {
@@ -13,7 +20,22 @@ const buttons = [
   },
 ];
 
-const ToolbarBubble: React.FC = () => (
+const asteroidControls: Array<{
+  key: keyof AsteroidLayerToggles;
+  label: string;
+  color: string;
+}> = [
+  { key: "mainBelt", label: "Main Belt", color: "#7fb4ff" },
+  { key: "nearEarth", label: "Near Earth", color: "#8dfac9" },
+  { key: "pha", label: "PHA", color: "#ffcf6d" },
+  { key: "closeApproaches", label: "Close", color: "#ff6b5a" },
+];
+
+const ToolbarBubble: React.FC<ToolbarBubbleProps> = ({
+  asteroidLayers,
+  onAsteroidLayersChange,
+  asteroidStats,
+}) => (
   <nav
     aria-label="Solar system tools"
     style={{
@@ -29,15 +51,18 @@ const ToolbarBubble: React.FC = () => (
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 6,
+        gap: 10,
         padding: "8px 10px",
-        borderRadius: 999,
+        borderRadius: 8,
         border: "1px solid rgba(255,255,255,0.1)",
         background:
-          "linear-gradient(135deg, rgba(64,64,64,0.82), rgba(10,10,10,0.92))",
+          "rgba(12, 13, 15, 0.88)",
         color: "white",
         boxShadow: "0 16px 36px rgba(0,0,0,0.4)",
         backdropFilter: "blur(12px)",
+        maxWidth: "calc(100vw - 24px)",
+        flexWrap: "wrap",
+        justifyContent: "center",
       }}
     >
       {buttons.map((button) => (
@@ -71,6 +96,71 @@ const ToolbarBubble: React.FC = () => (
           </svg>
         </button>
       ))}
+      <div
+        aria-hidden="true"
+        style={{
+          width: 1,
+          height: 28,
+          background: "rgba(255,255,255,0.12)",
+          margin: "0 2px",
+        }}
+      />
+      {asteroidControls.map((control) => {
+        const checked = asteroidLayers[control.key];
+        return (
+          <label
+            key={control.key}
+            style={{
+              height: 34,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "0 9px",
+              borderRadius: 7,
+              border: `1px solid ${checked ? control.color : "rgba(255,255,255,0.12)"}`,
+              background: checked ? "rgba(255,255,255,0.08)" : "transparent",
+              color: checked ? "#ffffff" : "rgba(255,255,255,0.62)",
+              fontSize: 12,
+              fontFamily: "'Space Mono', monospace",
+              whiteSpace: "nowrap",
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => {
+                onAsteroidLayersChange((current) => ({
+                  ...current,
+                  [control.key]: !current[control.key],
+                }));
+              }}
+              style={{
+                width: 13,
+                height: 13,
+                accentColor: control.color,
+                margin: 0,
+              }}
+            />
+            <span>{control.label}</span>
+          </label>
+        );
+      })}
+      <div
+        style={{
+          minWidth: 96,
+          textAlign: "center",
+          color: "rgba(255,255,255,0.72)",
+          fontSize: 12,
+          fontFamily: "'Space Mono', monospace",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {asteroidStats.loading
+          ? "Loading..."
+          : `${asteroidStats.visible.toLocaleString()} objects`}
+      </div>
     </div>
   </nav>
 );

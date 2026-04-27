@@ -9,19 +9,19 @@
  * UI components that need a reactive date string should read getSimTimeMs() in
  * their own useFrame loop and maintain local state.
  *
- * Default timeScale 120_000 ≈ 1.4 simulated days per real second, which
- * completes one Earth orbit in about 4.4 real minutes.
+ * Default timeScale 12_000 ≈ 3.3 simulated hours per real second. Faster
+ * speeds are available in the HUD, but this keeps fast moons visually smooth.
  */
 
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
-import { useFrame } from '@react-three/fiber';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,7 +54,7 @@ export const useSimClock = (): SimClockContextType | null =>
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_SCALE = 120_000; // ~1.4 sim-days per real second
+const DEFAULT_SCALE = 12_000; // ~3.3 sim-hours per real second
 
 interface Props {
   children: ReactNode;
@@ -70,11 +70,24 @@ export const SimulationClockProvider = ({ children }: Props) => {
   const [timeScale, setTimeScaleState] = useState<number>(DEFAULT_SCALE);
   const [isPlaying, setIsPlayingState] = useState<boolean>(true);
 
-  useFrame((_, delta) => {
-    if (isPlayingRef.current) {
-      simTimeRef.current += delta * 1000 * timeScaleRef.current;
-    }
-  });
+  useEffect(() => {
+    let frameId = 0;
+    let previousTime = performance.now();
+
+    const tick = (now: number) => {
+      const delta = Math.min((now - previousTime) / 1000, 0.1);
+      previousTime = now;
+
+      if (isPlayingRef.current) {
+        simTimeRef.current += delta * 1000 * timeScaleRef.current;
+      }
+
+      frameId = requestAnimationFrame(tick);
+    };
+
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   const getSimTimeMs = useCallback(() => simTimeRef.current, []);
 
