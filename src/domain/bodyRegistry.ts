@@ -1,6 +1,44 @@
 import { BodyDefinition } from './types';
 import { DISTANCE_SCALE_KM } from '../config/constants';
 
+function moonDefinition(
+  id: string,
+  horizonsId: number,
+  name: string,
+  parentId: string,
+  radiusKm: number,
+  labelColor: string,
+  semiMajorAxisKm: number,
+  eccentricity: number,
+  inclination: number,
+  ma0: number,
+  periodDays: number,
+): BodyDefinition {
+  return {
+    id,
+    horizonsId,
+    name,
+    type: 'moon',
+    parentId,
+    radiusKm,
+    labelColor,
+    textures: {
+      placeholder: labelColor,
+      low: '/textures/lod/8k_moon_1k.jpg',
+      high: '/textures/8k_moon.jpg',
+    },
+    keplerianElements: {
+      a: semiMajorAxisKm / DISTANCE_SCALE_KM,
+      e: eccentricity,
+      inclination,
+      omega: 0,
+      raan: 0,
+      ma0,
+    },
+    periodDays,
+  };
+}
+
 /**
  * Canonical registry of all solar system bodies known to the app.
  *
@@ -469,6 +507,44 @@ export const BODIES: Record<string, BodyDefinition> = {
     },
     periodDays: 5.87685,
   },
+
+  adrastea: moonDefinition('adrastea', 515, 'Adrastea', 'jupiter', 8.2, '#8d8072', 129000, 0.0018, 0.03, 35, 0.29826),
+  metis: moonDefinition('metis', 516, 'Metis', 'jupiter', 21.5, '#9c8975', 128000, 0.0002, 0.06, 82, 0.29478),
+  amalthea: moonDefinition('amalthea', 505, 'Amalthea', 'jupiter', 83.5, '#b26a55', 181400, 0.0032, 0.37, 145, 0.49818),
+  thebe: moonDefinition('thebe', 514, 'Thebe', 'jupiter', 49.3, '#947864', 221900, 0.0175, 1.08, 230, 0.67454),
+
+  pan: moonDefinition('pan', 618, 'Pan', 'saturn', 14.1, '#b6aa97', 133584, 0.0000, 0.00, 18, 0.57505),
+  daphnis: moonDefinition('daphnis', 635, 'Daphnis', 'saturn', 3.8, '#bdb3a2', 136505, 0.0000, 0.00, 48, 0.59408),
+  atlas: moonDefinition('atlas', 615, 'Atlas', 'saturn', 15.1, '#afa591', 137670, 0.0012, 0.00, 70, 0.60169),
+  prometheus: moonDefinition('prometheus', 616, 'Prometheus', 'saturn', 43.1, '#b7ad9d', 139380, 0.0022, 0.01, 96, 0.61299),
+  pandora: moonDefinition('pandora', 617, 'Pandora', 'saturn', 40.7, '#aaa08f', 141720, 0.0042, 0.05, 130, 0.62850),
+  epimetheus: moonDefinition('epimetheus', 611, 'Epimetheus', 'saturn', 58.1, '#bdb4a4', 151422, 0.0098, 0.34, 164, 0.69433),
+  janus: moonDefinition('janus', 610, 'Janus', 'saturn', 89.5, '#c2b8aa', 151472, 0.0068, 0.16, 210, 0.69466),
+  mimas: moonDefinition('mimas', 601, 'Mimas', 'saturn', 198.2, '#bdb9ae', 185539, 0.0196, 1.57, 250, 0.94242),
+  enceladus: moonDefinition('enceladus', 602, 'Enceladus', 'saturn', 252.1, '#d7d9d2', 238042, 0.0047, 0.01, 300, 1.37022),
+  tethys: moonDefinition('tethys', 603, 'Tethys', 'saturn', 531.1, '#c9c5ba', 294672, 0.0001, 1.09, 20, 1.88780),
+  telesto: moonDefinition('telesto', 613, 'Telesto', 'saturn', 12.4, '#bfb7aa', 294672, 0.0002, 1.16, 72, 1.88780),
+  calypso: moonDefinition('calypso', 614, 'Calypso', 'saturn', 10.7, '#b8b0a3', 294672, 0.0005, 1.47, 132, 1.88780),
+  dione: moonDefinition('dione', 604, 'Dione', 'saturn', 561.4, '#c8c4ba', 377415, 0.0022, 0.02, 182, 2.73692),
+  helene: moonDefinition('helene', 612, 'Helene', 'saturn', 16.0, '#b7b0a2', 377415, 0.0022, 0.21, 228, 2.73692),
+  rhea: moonDefinition('rhea', 605, 'Rhea', 'saturn', 763.8, '#c3c0b6', 527108, 0.0010, 0.35, 276, 4.51821),
+  hyperion: moonDefinition('hyperion', 607, 'Hyperion', 'saturn', 135.0, '#a69780', 1481100, 0.1042, 0.43, 326, 21.27661),
+  iapetus: moonDefinition('iapetus', 608, 'Iapetus', 'saturn', 734.5, '#9b8e7c', 3560820, 0.0283, 15.47, 42, 79.32150),
+  phoebe: moonDefinition('phoebe', 609, 'Phoebe', 'saturn', 106.5, '#77716c', 12947780, 0.1634, 175.00, 118, 550.48),
+
+  miranda: moonDefinition('miranda', 705, 'Miranda', 'uranus', 235.8, '#b9b6af', 129390, 0.0013, 4.34, 33, 1.41348),
+  ariel: moonDefinition('ariel', 701, 'Ariel', 'uranus', 578.9, '#c7c7c0', 191020, 0.0012, 0.04, 92, 2.52038),
+  umbriel: moonDefinition('umbriel', 702, 'Umbriel', 'uranus', 584.7, '#8f8f89', 266300, 0.0039, 0.13, 151, 4.14418),
+  puck: moonDefinition('puck', 715, 'Puck', 'uranus', 81.0, '#9d9d96', 86010, 0.0001, 0.32, 212, 0.76183),
+  portia: moonDefinition('portia', 712, 'Portia', 'uranus', 67.6, '#97978f', 66097, 0.0001, 0.06, 270, 0.51320),
+
+  naiad: moonDefinition('naiad', 803, 'Naiad', 'neptune', 30.2, '#8d98ac', 48227, 0.0003, 4.75, 24, 0.29440),
+  thalassa: moonDefinition('thalassa', 804, 'Thalassa', 'neptune', 40.7, '#909bad', 50075, 0.0002, 0.21, 88, 0.31148),
+  despina: moonDefinition('despina', 805, 'Despina', 'neptune', 75.0, '#8a95a6', 52526, 0.0002, 0.07, 146, 0.33466),
+  galatea: moonDefinition('galatea', 806, 'Galatea', 'neptune', 88.0, '#95a0af', 61953, 0.0001, 0.05, 203, 0.42875),
+  larissa: moonDefinition('larissa', 807, 'Larissa', 'neptune', 97.0, '#8d99aa', 73548, 0.0014, 0.20, 260, 0.55465),
+  proteus: moonDefinition('proteus', 808, 'Proteus', 'neptune', 210.0, '#9da4ad', 117647, 0.0005, 0.04, 314, 1.12231),
+  nereid: moonDefinition('nereid', 802, 'Nereid', 'neptune', 170.0, '#8b8a83', 5513400, 0.7507, 7.23, 62, 360.14),
 };
 
 /** All planet ids in order from Sun */
@@ -477,8 +553,38 @@ export const PLANET_IDS = [
   'jupiter', 'saturn', 'uranus', 'neptune',
 ] as const;
 
-/** Major moon ids rendered when their parent planet is focused/nearby. */
-export const MAJOR_MOON_IDS = [
+/** Moon ids rendered when their parent planet is focused/nearby. */
+export const RENDERED_MOON_IDS = [
+  'moon',
+  'phobos', 'deimos',
+  'adrastea', 'metis', 'amalthea', 'thebe',
+  'io', 'europa', 'ganymede', 'callisto',
+  'pan', 'daphnis', 'atlas', 'prometheus', 'pandora',
+  'epimetheus', 'janus', 'mimas', 'enceladus', 'tethys',
+  'telesto', 'calypso', 'dione', 'helene', 'rhea',
+  'titan', 'hyperion', 'iapetus', 'phoebe',
+  'puck', 'miranda', 'ariel', 'umbriel', 'titania', 'oberon', 'portia',
+  'naiad', 'thalassa', 'despina', 'galatea', 'larissa',
+  'proteus', 'triton', 'nereid',
+] as const;
+
+export const MOON_IDS_BY_PARENT = {
+  earth: ['moon'],
+  mars: ['phobos', 'deimos'],
+  jupiter: ['adrastea', 'metis', 'amalthea', 'thebe', 'io', 'europa', 'ganymede', 'callisto'],
+  saturn: [
+    'pan', 'daphnis', 'atlas', 'prometheus', 'pandora',
+    'epimetheus', 'janus', 'mimas', 'enceladus', 'tethys',
+    'telesto', 'calypso', 'dione', 'helene', 'rhea',
+    'titan', 'hyperion', 'iapetus', 'phoebe',
+  ],
+  uranus: ['puck', 'miranda', 'ariel', 'umbriel', 'titania', 'oberon', 'portia'],
+  neptune: ['naiad', 'thalassa', 'despina', 'galatea', 'larissa', 'proteus', 'triton', 'nereid'],
+} as const;
+
+/** Body ids with checked-in Horizons JSON files. Other rendered moons use fallback elements. */
+export const EPHEMERIS_BODY_IDS = [
+  ...PLANET_IDS,
   'moon',
   'phobos', 'deimos',
   'io', 'europa', 'ganymede', 'callisto',
@@ -491,4 +597,4 @@ export const MAJOR_MOON_IDS = [
 export const PRELOAD_BODY_IDS = [...PLANET_IDS, 'moon'] as const;
 
 /** All body ids known to the app. */
-export const ALL_BODY_IDS = [...PLANET_IDS, ...MAJOR_MOON_IDS] as const;
+export const ALL_BODY_IDS = [...PLANET_IDS, ...RENDERED_MOON_IDS] as const;

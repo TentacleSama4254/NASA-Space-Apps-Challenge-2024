@@ -52,55 +52,62 @@ interface DetailProps {
 }
 
 interface NightLightsProps {
+  earthRef: React.RefObject<THREE.Mesh | null>;
   lightsMap: THREE.Texture;
 }
 
-const NightLightsLayer: React.FC<NightLightsProps> = ({ lightsMap }) => {
+const NightLightsLayer: React.FC<NightLightsProps> = ({ earthRef, lightsMap }) => {
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const sunWorldRef = useRef(SUN_OFFSET.clone());
+  const sunLocalRef = useRef(new THREE.Vector3());
   const uniforms = useMemo(
     () => ({
       map: { value: lightsMap },
-      sunPosition: { value: SUN_OFFSET.clone() },
+      localSunPosition: { value: new THREE.Vector3() },
       opacity: { value: 0.88 },
     }),
     [lightsMap],
   );
 
   useFrame(() => {
-    materialRef.current?.uniforms.sunPosition.value.copy(SUN_OFFSET);
+    if (!earthRef.current || !materialRef.current) return;
+
+    sunWorldRef.current.copy(SUN_OFFSET);
+    sunLocalRef.current.copy(sunWorldRef.current);
+    earthRef.current.worldToLocal(sunLocalRef.current);
+    materialRef.current.uniforms.localSunPosition.value.copy(sunLocalRef.current);
   });
 
   return (
     <mesh>
-      <sphereGeometry args={[earthSize * 1.003, 132, 132]} />
+      <sphereGeometry args={[earthSize * 1.006, 132, 132]} />
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
         vertexShader={`
           varying vec2 vUv;
-          varying vec3 vWorldPosition;
-          varying vec3 vWorldNormal;
+          varying vec3 vLocalPosition;
+          varying vec3 vLocalNormal;
 
           void main() {
             vUv = uv;
-            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-            vWorldPosition = worldPosition.xyz;
-            vWorldNormal = normalize(mat3(modelMatrix) * normal);
-            gl_Position = projectionMatrix * viewMatrix * worldPosition;
+            vLocalPosition = position;
+            vLocalNormal = normal;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `}
         fragmentShader={`
           uniform sampler2D map;
-          uniform vec3 sunPosition;
+          uniform vec3 localSunPosition;
           uniform float opacity;
 
           varying vec2 vUv;
-          varying vec3 vWorldPosition;
-          varying vec3 vWorldNormal;
+          varying vec3 vLocalPosition;
+          varying vec3 vLocalNormal;
 
           void main() {
-            vec3 lightDirection = normalize(sunPosition - vWorldPosition);
-            float lightAmount = dot(normalize(vWorldNormal), lightDirection);
+            vec3 lightDirection = normalize(localSunPosition - vLocalPosition);
+            float lightAmount = dot(normalize(vLocalNormal), lightDirection);
             float nightMask = smoothstep(0.12, -0.18, lightAmount);
             vec3 cityLights = texture2D(map, vUv).rgb;
             float luminance = dot(cityLights, vec3(0.299, 0.587, 0.114));
@@ -155,7 +162,7 @@ const EarthDetailLayer: React.FC<DetailProps> = ({ earthRef }) => {
         />
       </mesh>
 
-      <NightLightsLayer lightsMap={lightsMap} />
+      <NightLightsLayer earthRef={earthRef} lightsMap={lightsMap} />
     </>
   );
 };

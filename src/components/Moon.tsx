@@ -6,14 +6,17 @@
  * Earth's ephemeris/fallback position is used while data loads.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { OrbitalParams, SatelliteProps } from '../types';
 import { propagate } from '../utils/planetCalculations';
 import OrbitLine from '../context/OrbitLine';
-import { BODIES } from '../domain/bodyRegistry';
-import { getBodyPosition, loadEphemerisForBody } from '../domain/ephemerisService';
+import { BODIES, EPHEMERIS_BODY_IDS } from '../domain/bodyRegistry';
+import {
+  getBodyPositionRelativeToParent,
+  loadEphemerisForBody,
+} from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 import { useCamera } from '../context/Camera';
@@ -23,9 +26,72 @@ import { globalRefs } from '../context/GlobalRefs';
 
 const MIN_VISIBLE_MOON_RADIUS = 0.01;
 
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function randomFromSeed(seed: number): () => number {
+  let next = seed;
+  return () => {
+    next = Math.imul(1664525, next) + 1013904223;
+    return ((next >>> 0) / 4294967296);
+  };
+}
+
+function makeProceduralMoonTexture(bodyId: string, baseColor: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  const seed = hashString(bodyId);
+  const random = randomFromSeed(seed);
+  const base = new THREE.Color(baseColor);
+
+  ctx.fillStyle = base.getStyle();
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      const latitudeShade = 0.84 + Math.sin((y / canvas.height) * Math.PI) * 0.22;
+      const grain = 0.8 + random() * 0.42;
+      const color = base.clone().multiplyScalar(latitudeShade * grain);
+      ctx.fillStyle = color.getStyle();
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  for (let i = 0; i < 42; i += 1) {
+    const x = random() * canvas.width;
+    const y = random() * canvas.height;
+    const radius = 1.5 + random() * 9;
+    const shade = random() > 0.45 ? 1.22 : 0.55;
+    const color = base.clone().multiplyScalar(shade);
+    const gradient = ctx.createRadialGradient(x, y, radius * 0.15, x, y, radius);
+    gradient.addColorStop(0, color.getStyle());
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 const Satellite: React.FC<SatelliteProps> = ({
   bodyId = 'moon',
-  planetPosition = new THREE.Vector3(0, 0, 0),
   orbit,
 }) => {
   const bodyDef = BODIES[bodyId] ?? BODIES.moon;
@@ -40,11 +106,17 @@ const Satellite: React.FC<SatelliteProps> = ({
   const opacityRef = useRef(1);
   const [tagOpacity, setTagOpacity] = useState(1);
   const isFocused = focusedObject?.object === groupRef.current;
+  const usesPhotoTexture = bodyDef.id === 'moon';
   const { texture: moonMap } = useProgressiveTexture({
-    lowSrc: bodyDef.textures.low,
-    highSrc: bodyDef.textures.high,
+    lowSrc: usesPhotoTexture ? bodyDef.textures.low : null,
+    highSrc: usesPhotoTexture ? bodyDef.textures.high : null,
     loadHigh: isFocused,
   });
+  const proceduralMap = useMemo(
+    () => usesPhotoTexture ? null : makeProceduralMoonTexture(bodyDef.id, bodyDef.textures.placeholder),
+    [bodyDef.id, bodyDef.textures.placeholder, usesPhotoTexture],
+  );
+  const surfaceMap = moonMap ?? proceduralMap;
 
   const kep = bodyDef.keplerianElements!;
   const periodDays = bodyDef.periodDays!;
@@ -60,7 +132,9 @@ const Satellite: React.FC<SatelliteProps> = ({
   };
 
   useEffect(() => {
-    loadEphemerisForBody(bodyDef.id);
+    if ((EPHEMERIS_BODY_IDS as readonly string[]).includes(bodyDef.id)) {
+      loadEphemerisForBody(bodyDef.id);
+    }
   }, [bodyDef.id]);
 
   useEffect(() => {
@@ -71,19 +145,20 @@ const Satellite: React.FC<SatelliteProps> = ({
     };
   }, []);
 
+  useEffect(() => () => {
+    proceduralMap?.dispose();
+  }, [proceduralMap]);
+
   useFrame(({ clock: r3fClock, camera }) => {
     if (!groupRef.current || !moonRef.current) return;
 
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
 
     // ── Position (ephemeris → fallback) ───────────────────────────────────────
-    const ephPos = getBodyPosition(bodyDef.id, simTimeMs);
+    const ephPos = getBodyPositionRelativeToParent(bodyDef.id, simTimeMs);
 
     if (ephPos) {
-      const parentPos =
-        (bodyDef.parentId ? getBodyPosition(bodyDef.parentId, simTimeMs) : null) ??
-        planetPosition;
-      groupRef.current.position.copy(ephPos.clone().sub(parentPos));
+      groupRef.current.position.copy(ephPos);
     } else {
       // Fallback: satellites are nested under their parent moving group.
       const secFromJ2000 = (simTimeMs - J2000_UNIX_MS) / 1000;
@@ -134,8 +209,8 @@ const Satellite: React.FC<SatelliteProps> = ({
           <ambientLight intensity={0.03} />
           <sphereGeometry args={[visualRadius, 32, 32]} />
           <meshStandardMaterial
-            map={moonMap ?? undefined}
-            color={moonMap ? 0xffffff : bodyDef.textures.placeholder}
+            map={surfaceMap ?? undefined}
+            color={surfaceMap ? 0xffffff : bodyDef.textures.placeholder}
           />
         </instancedMesh>
 
@@ -145,7 +220,6 @@ const Satellite: React.FC<SatelliteProps> = ({
           dotColor={bodyDef.labelColor}
           opacity={tagOpacity}
           onClick={focusMoon}
-          occlude={globalRefs.filter((ref) => ref !== groupRef)}
         />
       </group>
 
@@ -155,6 +229,8 @@ const Satellite: React.FC<SatelliteProps> = ({
         planetRef={groupRef}
         isFocused={isFocused}
         periodDays={periodDays}
+        bodyId={bodyDef.id}
+        relativeToParent
         meanAnomalyDeg={kep.ma0 ?? 0}
       />
     </>

@@ -11,6 +11,7 @@ import SolarObj from './SolarBody';
 import { PlanetData, distanceScaleKm } from '../config/SolarBodiesImport';
 import { AsteroidData } from '../assets/asteroid_api_data';
 import { preloadEphemeris } from '../domain/ephemerisService';
+import { MOON_IDS_BY_PARENT } from '../domain/bodyRegistry';
 
 // ─── Asteroid belt sample ─────────────────────────────────────────────────────
 
@@ -71,20 +72,24 @@ const Scene = () => {
         <SolarObj {...PlanetData.mercury} />
         <SolarObj {...PlanetData.venus} />
         <Earth orbit={PlanetData.earth.orbit}>
-          <Moon />
+          {MOON_IDS_BY_PARENT.earth.map((bodyId) => (
+            <Moon key={bodyId} bodyId={bodyId} />
+          ))}
         </Earth>
         <SolarObj {...PlanetData.mars}>
-          <Moon bodyId="phobos" />
-          <Moon bodyId="deimos" />
+          {MOON_IDS_BY_PARENT.mars.map((bodyId) => (
+            <Moon key={bodyId} bodyId={bodyId} />
+          ))}
         </SolarObj>
         <SolarObj {...PlanetData.jupiter}>
-          <Moon bodyId="io" />
-          <Moon bodyId="europa" />
-          <Moon bodyId="ganymede" />
-          <Moon bodyId="callisto" />
+          {MOON_IDS_BY_PARENT.jupiter.map((bodyId) => (
+            <Moon key={bodyId} bodyId={bodyId} />
+          ))}
         </SolarObj>
         <SolarObj {...PlanetData.saturn}>
-          <Moon bodyId="titan" />
+          {MOON_IDS_BY_PARENT.saturn.map((bodyId) => (
+            <Moon key={bodyId} bodyId={bodyId} />
+          ))}
           <SaturnRing
             texturePath="/textures/8k_saturn_ring_alpha.png"
             innerRadius={160000 / distanceScaleKm}
@@ -92,11 +97,14 @@ const Scene = () => {
           />
         </SolarObj>
         <SolarObj {...PlanetData.uranus}>
-          <Moon bodyId="titania" />
-          <Moon bodyId="oberon" />
+          {MOON_IDS_BY_PARENT.uranus.map((bodyId) => (
+            <Moon key={bodyId} bodyId={bodyId} />
+          ))}
         </SolarObj>
         <SolarObj {...PlanetData.neptune}>
-          <Moon bodyId="triton" />
+          {MOON_IDS_BY_PARENT.neptune.map((bodyId) => (
+            <Moon key={bodyId} bodyId={bodyId} />
+          ))}
         </SolarObj>
       </Sun>
 

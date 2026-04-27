@@ -160,6 +160,22 @@ export function isBodyLoaded(bodyId: string): boolean {
   return seriesCache.has(bodyId);
 }
 
+/** Returns true when the cached ephemeris can cover a full orbit around simTimeMs. */
+export function hasFullOrbitCoverage(bodyId: string, simTimeMs: number): boolean {
+  const series = seriesCache.get(bodyId);
+  if (!series || series.records.length < 3) return false;
+
+  const body = BODIES[bodyId];
+  const periodMs = (body?.periodDays ?? 365) * 86400 * 1000;
+  const half = periodMs / 2;
+  const startMs = simTimeMs - half;
+  const endMs = simTimeMs + half;
+  const firstRecordMs = series.records[0].unixMs;
+  const lastRecordMs = series.records[series.records.length - 1].unixMs;
+
+  return startMs >= firstRecordMs && endMs <= lastRecordMs;
+}
+
 // ─── Public position API ──────────────────────────────────────────────────────
 
 /**
@@ -193,6 +209,27 @@ export function getBodyPosition(
 }
 
 /**
+ * Returns a body's local position relative to its parent. For moons this is the
+ * raw planetocentric Horizons vector in scene units; for heliocentric bodies it
+ * is the same absolute scene-space position returned by getBodyPosition().
+ */
+export function getBodyPositionRelativeToParent(
+  bodyId: string,
+  simTimeMs: number,
+): THREE.Vector3 | null {
+  const body = BODIES[bodyId];
+  if (body?.type !== 'moon' || !body.parentId) {
+    return getBodyPosition(bodyId, simTimeMs);
+  }
+
+  const series = seriesCache.get(bodyId);
+  if (!series) return null;
+
+  const posKm = interpolate(series.records, simTimeMs);
+  return posKm ? eclipticToScene(posKm) : null;
+}
+
+/**
  * Returns an ordered array of scene-space positions spanning approximately one
  * full orbit around simTimeMs, suitable for drawing an orbit path.
  *
@@ -208,16 +245,13 @@ export function getOrbitPath(
   if (!series || series.records.length < 3) return null;
 
   const body = BODIES[bodyId];
+  if (!hasFullOrbitCoverage(bodyId, simTimeMs)) {
+    return null;
+  }
+
   const periodMs = (body?.periodDays ?? 365) * 86400 * 1000;
   const half = periodMs / 2;
   const startMs = simTimeMs - half;
-  const endMs = simTimeMs + half;
-  const firstRecordMs = series.records[0].unixMs;
-  const lastRecordMs = series.records[series.records.length - 1].unixMs;
-
-  if (startMs < firstRecordMs || endMs > lastRecordMs) {
-    return null;
-  }
 
   const points: THREE.Vector3[] = [];
 
@@ -227,6 +261,39 @@ export function getOrbitPath(
   for (let i = 0; i <= samples; i += 1) {
     const t = startMs + (i / samples) * periodMs;
     const point = getBodyPosition(bodyId, t);
+    if (point) points.push(point);
+  }
+
+  return points.length >= 3 ? points : null;
+}
+
+/**
+ * Returns an ordered local-space orbit path for a moon. This keeps rendered
+ * satellite paths in the same coordinate system as the nested moon meshes.
+ */
+export function getRelativeOrbitPath(
+  bodyId: string,
+  simTimeMs: number,
+  samples = 1440,
+): THREE.Vector3[] | null {
+  const series = seriesCache.get(bodyId);
+  if (!series || series.records.length < 3) return null;
+
+  const body = BODIES[bodyId];
+  if (body?.type !== 'moon' || !body.parentId) return getOrbitPath(bodyId, simTimeMs, samples);
+
+  if (!hasFullOrbitCoverage(bodyId, simTimeMs)) {
+    return null;
+  }
+
+  const periodMs = (body.periodDays ?? 365) * 86400 * 1000;
+  const half = periodMs / 2;
+  const startMs = simTimeMs - half;
+
+  const points: THREE.Vector3[] = [];
+  for (let i = 0; i <= samples; i += 1) {
+    const t = startMs + (i / samples) * periodMs;
+    const point = getBodyPositionRelativeToParent(bodyId, t);
     if (point) points.push(point);
   }
 

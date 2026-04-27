@@ -11,7 +11,11 @@ import { SaturnRingProps } from './PlanetRing';
 import { globalRefs } from '../context/GlobalRefs';
 import PlanetLabel from './PlanetLabel';
 import { BODIES } from '../domain/bodyRegistry';
-import { getBodyPosition, loadEphemerisForBody } from '../domain/ephemerisService';
+import {
+  getBodyPosition,
+  hasFullOrbitCoverage,
+  loadEphemerisForBody,
+} from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 import { useCamera } from '../context/Camera';
@@ -125,7 +129,7 @@ const Planet: React.FC<PlanetDataType> = ({
     // ── Position (ephemeris → fallback Keplerian) ────────────────────────────
     const ephemerisPos = getBodyPosition(bodyId, simTimeMs);
 
-    if (ephemerisPos) {
+    if (ephemerisPos && hasFullOrbitCoverage(bodyId, simTimeMs)) {
       groupRef.current.position.copy(ephemerisPos);
     } else {
       // Fallback: Keplerian propagation from J2000 epoch with ma0 offset.

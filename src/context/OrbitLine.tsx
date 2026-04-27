@@ -14,7 +14,11 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { propagate } from '../utils/planetCalculations';
 import { OrbitalParams } from '../types';
-import { getOrbitPath, subscribeEphemerisLoaded } from '../domain/ephemerisService';
+import {
+  getOrbitPath,
+  getRelativeOrbitPath,
+  subscribeEphemerisLoaded,
+} from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 
@@ -27,6 +31,8 @@ interface OrbitLineProps {
   periodDays?: number;
   /** Body id used to query the ephemeris orbit path. */
   bodyId?: string;
+  /** Use parent-local ephemeris paths for nested satellites. */
+  relativeToParent?: boolean;
   /** Mean anomaly at J2000, degrees, used by the Keplerian fallback. */
   meanAnomalyDeg?: number;
 }
@@ -38,6 +44,7 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
   isFocused,
   periodDays = 365,
   bodyId,
+  relativeToParent = false,
   meanAnomalyDeg = 0,
 }) => {
   const simClock = useSimClock();
@@ -69,7 +76,9 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
 
     // ── Try ephemeris orbit path first ────────────────────────────────────────
     if (bodyId) {
-      const ephPoints = getOrbitPath(bodyId, simTimeMs, isFocused ? 4096 : 1440);
+      const ephPoints = relativeToParent
+        ? getRelativeOrbitPath(bodyId, simTimeMs, isFocused ? 4096 : 1440)
+        : getOrbitPath(bodyId, simTimeMs, isFocused ? 4096 : 1440);
       if (ephPoints && ephPoints.length >= 3) {
         return {
           line: makeLine(ephPoints),
@@ -126,6 +135,7 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
     orbitalParams.omega,
     orbitalParams.raan,
     periodDays,
+    relativeToParent,
   ]);
 
   useEffect(() => {
