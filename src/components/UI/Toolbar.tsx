@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import type { AsteroidLayerToggles } from "../AsteroidCloud";
 
 interface ToolbarBubbleProps {
@@ -49,105 +49,133 @@ const ToolbarBubble: React.FC<ToolbarBubbleProps> = ({
   asteroidLayers,
   onAsteroidLayersChange,
   asteroidStats,
-}) => (
-  <nav
-    aria-label="Solar system tools"
-    style={{
-      position: "fixed",
-      left: "50%",
-      bottom: 28,
-      zIndex: 50,
-      transform: "translateX(-50%)",
-      pointerEvents: "auto",
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      padding: "8px 10px",
-      borderRadius: 999,
-      border: "1px solid rgba(255,255,255,0.1)",
-      background: "linear-gradient(135deg, rgba(44,44,44,0.82), rgba(8,8,8,0.92))",
-      color: "white",
-      boxShadow: "0 16px 36px rgba(0,0,0,0.38)",
-      backdropFilter: "blur(12px)",
-      maxWidth: "calc(100vw - 24px)",
-      flexWrap: "wrap",
-      justifyContent: "center",
-    }}
-  >
-    {buttons.map((button) => (
-      <button
-        key={button.label}
-        type="button"
-        title={button.title}
-        style={iconButtonStyle}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          style={{ width: 18, height: 18, flexShrink: 0 }}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d={button.path} />
-        </svg>
-      </button>
-    ))}
-    {asteroidControls.map((control) => {
-      const checked = asteroidLayers[control.key];
-      return (
-        <label
-          key={control.key}
-          title={`Toggle ${control.label}`}
-          style={{
-            height: 32,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            color: checked ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.46)",
-            fontSize: 11,
-            lineHeight: 1,
-            fontFamily: "'Space Mono', monospace",
-            whiteSpace: "nowrap",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={() => {
-              onAsteroidLayersChange((current) => ({
-                ...current,
-                [control.key]: !current[control.key],
-              }));
-            }}
-            style={{
-              width: 12,
-              height: 12,
-              accentColor: control.color,
-              margin: 0,
-            }}
-          />
-          <span>{control.label}</span>
-        </label>
-      );
-    })}
-    <span
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const expandableStyle: React.CSSProperties = {
+    maxWidth: isExpanded ? 130 : 0,
+    opacity: isExpanded ? 1 : 0,
+    overflow: "hidden",
+    transform: isExpanded ? "translateY(0)" : "translateY(2px)",
+    transition: "max-width 220ms ease, opacity 180ms ease, transform 220ms ease",
+    pointerEvents: isExpanded ? "auto" : "none",
+  };
+
+  return (
+    <nav
+      aria-label="Solar system tools"
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
+      onFocus={() => setIsExpanded(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsExpanded(false);
+      }}
       style={{
-        minWidth: 92,
-        textAlign: "center",
-        color: "rgba(255,255,255,0.58)",
-        fontSize: 11,
-        fontFamily: "'Space Mono', monospace",
-        whiteSpace: "nowrap",
+        position: "fixed",
+        left: "50%",
+        bottom: 28,
+        zIndex: 50,
+        transform: "translateX(-50%)",
+        pointerEvents: "auto",
+        display: "flex",
+        alignItems: "center",
+        gap: isExpanded ? 10 : 6,
+        padding: "8px 10px",
+        borderRadius: 999,
+        border: "1px solid rgba(255,255,255,0.1)",
+        background: "linear-gradient(135deg, rgba(44,44,44,0.82), rgba(8,8,8,0.92))",
+        color: "white",
+        boxShadow: "0 16px 36px rgba(0,0,0,0.38)",
+        backdropFilter: "blur(12px)",
+        maxWidth: "calc(100vw - 24px)",
+        overflow: "hidden",
+        justifyContent: "center",
+        transition: "gap 220ms ease, padding 220ms ease",
       }}
     >
-      {asteroidStats.loading
-        ? "Loading..."
-        : `${asteroidStats.visible.toLocaleString()} objects`}
-    </span>
-  </nav>
-);
+      {buttons.map((button) => (
+        <button
+          key={button.label}
+          type="button"
+          title={button.title}
+          style={iconButtonStyle}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            style={{ width: 18, height: 18, flexShrink: 0 }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d={button.path} />
+          </svg>
+        </button>
+      ))}
+      {asteroidControls.map((control) => {
+        const checked = asteroidLayers[control.key];
+        return (
+          <label
+            key={control.key}
+            title={`Toggle ${control.label}`}
+            style={{
+              ...expandableStyle,
+              height: 32,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              color: checked ? "rgba(255,255,255,0.86)" : "rgba(255,255,255,0.46)",
+              fontSize: 11,
+              lineHeight: 1,
+              fontFamily: "'Space Mono', monospace",
+              whiteSpace: "nowrap",
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => {
+                onAsteroidLayersChange((current) => ({
+                  ...current,
+                  [control.key]: !current[control.key],
+                }));
+              }}
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                border: `1px solid ${checked ? control.color : "rgba(255,255,255,0.28)"}`,
+                appearance: "none",
+                background: checked ? control.color : "rgba(255,255,255,0.06)",
+                boxShadow: checked ? `0 0 10px ${control.color}66` : "none",
+                margin: 0,
+                flexShrink: 0,
+              }}
+            />
+            <span>{control.label}</span>
+          </label>
+        );
+      })}
+      <span
+        aria-live="polite"
+          style={{
+            ...expandableStyle,
+            minWidth: isExpanded ? 92 : 0,
+            textAlign: "center",
+            color: "rgba(255,255,255,0.58)",
+            fontSize: 11,
+            fontFamily: "'Space Mono', monospace",
+            whiteSpace: "nowrap",
+          }}
+        >
+        {asteroidStats.loading
+          ? "Loading..."
+          : `${asteroidStats.visible.toLocaleString()} objects`}
+      </span>
+    </nav>
+  );
+};
 
 export default ToolbarBubble;

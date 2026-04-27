@@ -32,10 +32,10 @@ const INITIAL_CATALOG_STATE: AsteroidCatalogState = {
 };
 
 const POINT_COLORS = {
-  mainBelt: new THREE.Color('#7fb4ff'),
-  neo: new THREE.Color('#8dfac9'),
-  pha: new THREE.Color('#ffcf6d'),
-  close: new THREE.Color('#ff6b5a'),
+  mainBelt: new THREE.Color('#9dccff'),
+  neo: new THREE.Color('#a6ffd9'),
+  pha: new THREE.Color('#ffd97a'),
+  close: new THREE.Color('#ff786d'),
 };
 
 function labelFor(body: SmallBodyOrbit): string {
@@ -92,8 +92,8 @@ function makeCircleSpriteTexture(): THREE.Texture {
 
   const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 31);
   gradient.addColorStop(0, 'rgba(255,255,255,1)');
-  gradient.addColorStop(0.36, 'rgba(255,255,255,0.88)');
-  gradient.addColorStop(0.72, 'rgba(255,255,255,0.24)');
+  gradient.addColorStop(0.42, 'rgba(255,255,255,0.96)');
+  gradient.addColorStop(0.78, 'rgba(255,255,255,0.36)');
   gradient.addColorStop(1, 'rgba(255,255,255,0)');
 
   context.fillStyle = gradient;
@@ -299,11 +299,11 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
         <pointsMaterial
           map={circleTexture}
           alphaTest={0.02}
-          size={4.2}
+          size={4.8}
           sizeAttenuation
           vertexColors
           transparent
-          opacity={0.68}
+          opacity={0.88}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
