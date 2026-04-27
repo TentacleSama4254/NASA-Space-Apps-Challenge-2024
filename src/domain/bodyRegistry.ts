@@ -23,7 +23,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#b5b5b5',
     textures: {
       placeholder: '#b5b5b5',
-      low: '/textures/8k_mercury.jpg',
+      low: '/textures/lod/8k_mercury_1k.jpg',
       high: '/textures/8k_mercury.jpg',
     },
     keplerianElements: {
@@ -47,7 +47,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#e8cda0',
     textures: {
       placeholder: '#e8cda0',
-      low: '/textures/8k_venus_surface.jpg',
+      low: '/textures/lod/8k_venus_surface_1k.jpg',
       high: '/textures/8k_venus_surface.jpg',
     },
     keplerianElements: {
@@ -71,7 +71,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#4fb8ff',
     textures: {
       placeholder: '#4fb8ff',
-      low: '/textures/8k_earth_daymap.jpg',
+      low: '/textures/lod/8k_earth_daymap_1k.jpg',
       high: '/textures/8k_earth_daymap.jpg',
     },
     keplerianElements: {
@@ -95,7 +95,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#c8c8c8',
     textures: {
       placeholder: '#c8c8c8',
-      low: '/textures/8k_moon.jpg',
+      low: '/textures/lod/8k_moon_1k.jpg',
       high: '/textures/8k_moon.jpg',
     },
     keplerianElements: {
@@ -120,7 +120,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#c1440e',
     textures: {
       placeholder: '#c1440e',
-      low: '/textures/8k_mars.jpg',
+      low: '/textures/lod/8k_mars_1k.jpg',
       high: '/textures/8k_mars.jpg',
     },
     keplerianElements: {
@@ -144,7 +144,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#c88b3a',
     textures: {
       placeholder: '#c88b3a',
-      low: '/textures/8k_jupiter.jpg',
+      low: '/textures/lod/8k_jupiter_1k.jpg',
       high: '/textures/8k_jupiter.jpg',
     },
     keplerianElements: {
@@ -168,7 +168,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#e4d191',
     textures: {
       placeholder: '#e4d191',
-      low: '/textures/8k_saturn.jpg',
+      low: '/textures/lod/8k_saturn_1k.jpg',
       high: '/textures/8k_saturn.jpg',
     },
     keplerianElements: {
@@ -192,7 +192,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#7de8e8',
     textures: {
       placeholder: '#7de8e8',
-      low: '/textures/2k_uranus.jpg',
+      low: '/textures/lod/2k_uranus_1k.jpg',
       high: '/textures/2k_uranus.jpg',
     },
     keplerianElements: {
@@ -216,7 +216,7 @@ export const BODIES: Record<string, BodyDefinition> = {
     labelColor: '#3f54ba',
     textures: {
       placeholder: '#3f54ba',
-      low: '/textures/2k_neptune.jpg',
+      low: '/textures/lod/2k_neptune_1k.jpg',
       high: '/textures/2k_neptune.jpg',
     },
     keplerianElements: {

@@ -23,6 +23,27 @@ import { DISTANCE_SCALE_KM, SUN_OFFSET } from '../config/constants';
 
 const seriesCache = new Map<string, EphemerisSeries>();
 const loadingSet = new Set<string>();
+const listeners = new Set<(bodyId: string) => void>();
+
+interface PreloadOptions {
+  deferRest?: boolean;
+  delayMs?: number;
+  staggerMs?: number;
+}
+
+function requestIdle(callback: () => void, timeout: number): void {
+  const idleCallback = window.requestIdleCallback;
+  if (idleCallback) {
+    idleCallback(callback, { timeout });
+    return;
+  }
+
+  window.setTimeout(callback, timeout);
+}
+
+function emitLoaded(bodyId: string): void {
+  listeners.forEach((listener) => listener(bodyId));
+}
 
 // ─── Coordinate helpers ───────────────────────────────────────────────────────
 
@@ -82,6 +103,7 @@ function loadBody(bodyId: string): void {
     })
     .then((series) => {
       seriesCache.set(bodyId, series);
+      emitLoaded(bodyId);
       console.info(
         `[ephemeris] Loaded ${series.records.length} records for ${bodyId}` +
           ` (source: ${series.generatedAt})`,
@@ -96,9 +118,41 @@ function loadBody(bodyId: string): void {
     });
 }
 
-/** Kick off parallel loading for all registered bodies. Call once at app startup. */
-export function preloadEphemeris(): void {
-  ALL_BODY_IDS.forEach(loadBody);
+/** Kick off ephemeris loading with optional deferred background bodies. */
+export function preloadEphemeris(
+  priorityIds: readonly string[] = ALL_BODY_IDS,
+  options: PreloadOptions = {},
+): void {
+  priorityIds.forEach(loadBody);
+
+  if (!options.deferRest) {
+    ALL_BODY_IDS.filter((bodyId) => !priorityIds.includes(bodyId)).forEach(loadBody);
+    return;
+  }
+
+  const delayMs = options.delayMs ?? 1200;
+  const staggerMs = options.staggerMs ?? 450;
+
+  ALL_BODY_IDS
+    .filter((bodyId) => !priorityIds.includes(bodyId))
+    .forEach((bodyId, index) => {
+      window.setTimeout(() => {
+        requestIdle(() => loadBody(bodyId), 1200);
+      }, delayMs + index * staggerMs);
+    });
+}
+
+/** Load one body's ephemeris on demand, such as when a planet becomes focused. */
+export function loadEphemerisForBody(bodyId: string): void {
+  loadBody(bodyId);
+}
+
+/** Subscribe to loaded-body events so orbit geometry can rebuild after data arrives. */
+export function subscribeEphemerisLoaded(listener: (bodyId: string) => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /** Returns true once the ephemeris series for bodyId is in memory. */

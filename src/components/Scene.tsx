@@ -60,9 +60,9 @@ const ASTEROID_SAMPLE = buildAsteroidProps(30);
 // ─── Scene ────────────────────────────────────────────────────────────────────
 
 const Scene = () => {
-  // Start loading all ephemeris JSON files as soon as the scene mounts.
+  // Prioritize the initial Earth focus, then trickle in the rest while idle.
   useEffect(() => {
-    preloadEphemeris();
+    preloadEphemeris(['earth', 'moon'], { deferRest: true });
   }, []);
 
   return (
@@ -77,7 +77,7 @@ const Scene = () => {
         <SolarObj {...PlanetData.jupiter} />
         <SolarObj {...PlanetData.saturn}>
           <SaturnRing
-            texturePath="https://i.postimg.cc/zz7Gr430/saturn-rings-top.png"
+            texturePath="/textures/8k_saturn_ring_alpha.png"
             innerRadius={160000 / distanceScaleKm}
             outerRadius={320000 / distanceScaleKm}
           />

@@ -24,10 +24,11 @@ import { PlanetData } from '../config/SolarBodiesImport';
 import PlanetLabel from './PlanetLabel';
 import { globalRefs } from '../context/GlobalRefs';
 import { BODIES } from '../domain/bodyRegistry';
-import { getBodyPosition } from '../domain/ephemerisService';
+import { getBodyPosition, loadEphemerisForBody } from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 import { useCamera } from '../context/Camera';
+import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -119,8 +120,6 @@ const Earth: React.FC<EarthProps> = ({
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
-  const { gl } = useThree();
-  const [colourMap] = useLoader(TextureLoader, [DAY_MAP]);
 
   const groupRef  = useRef<THREE.Group | null>(null);
   const earthRef  = useRef<THREE.Mesh | null>(null);
@@ -131,6 +130,12 @@ const Earth: React.FC<EarthProps> = ({
   const [segments, setSegments]       = useState(32);
   const opacityRef = useRef(tagOpacity);
   const didAutoFocus = useRef(false);
+  const isFocused = focusedObject?.object === groupRef.current;
+  const { texture: colourMap } = useProgressiveTexture({
+    lowSrc: EARTH_DEF.textures.low,
+    highSrc: DAY_MAP,
+    loadHigh: showDetail || isFocused,
+  });
 
   const kep = EARTH_DEF.keplerianElements!;
   const periodDays = EARTH_DEF.periodDays!;
@@ -144,10 +149,11 @@ const Earth: React.FC<EarthProps> = ({
   };
 
   useEffect(() => {
-    colourMap.colorSpace = THREE.SRGBColorSpace;
-    colourMap.anisotropy = Math.min(16, gl.capabilities.getMaxAnisotropy());
-    colourMap.needsUpdate = true;
-  }, [colourMap, gl]);
+    if (!isFocused) return;
+    setShowDetail(true);
+    loadEphemerisForBody('earth');
+    loadEphemerisForBody('moon');
+  }, [isFocused]);
 
   useFrame(({ clock: r3fClock, camera }) => {
     if (!groupRef.current || !earthRef.current) return;
@@ -220,8 +226,6 @@ const Earth: React.FC<EarthProps> = ({
     }
   };
 
-  const isFocused = focusedObject?.object === groupRef.current;
-
   return (
     <>
       <group ref={groupRef} userData={{ diameter: PlanetData.earth.diameter }}>
@@ -237,10 +241,14 @@ const Earth: React.FC<EarthProps> = ({
         >
           <ambientLight intensity={0.03} />
 
-          {/* Base surface is loaded by the scene Suspense before Earth is focused. */}
+          {/* Base surface starts low-res, then promotes to 8K while Earth is focused. */}
           <mesh ref={earthRef}>
             <sphereGeometry args={[earthSize, segments, segments]} />
-            <meshStandardMaterial map={colourMap} color={0xffffff} roughness={0.82} />
+            <meshStandardMaterial
+              map={colourMap ?? undefined}
+              color={colourMap ? 0xffffff : EARTH_DEF.textures.placeholder}
+              roughness={0.82}
+            />
 
             {/* Load detail textures only when camera is close */}
             {showDetail && (
@@ -280,6 +288,7 @@ const Earth: React.FC<EarthProps> = ({
         isFocused={isFocused}
         periodDays={periodDays}
         bodyId="earth"
+        meanAnomalyDeg={kep.ma0 ?? 0}
       />
     </>
   );

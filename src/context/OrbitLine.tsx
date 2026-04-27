@@ -9,12 +9,12 @@
  * the old hard-coded 20 000-second animation loop.
  */
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { propagate } from '../utils/planetCalculations';
 import { OrbitalParams } from '../types';
-import { getOrbitPath } from '../domain/ephemerisService';
+import { getOrbitPath, subscribeEphemerisLoaded } from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 
@@ -27,6 +27,8 @@ interface OrbitLineProps {
   periodDays?: number;
   /** Body id used to query the ephemeris orbit path. */
   bodyId?: string;
+  /** Mean anomaly at J2000, degrees, used by the Keplerian fallback. */
+  meanAnomalyDeg?: number;
 }
 
 const OrbitLine: React.FC<OrbitLineProps> = ({
@@ -36,11 +38,22 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
   isFocused,
   periodDays = 365,
   bodyId,
+  meanAnomalyDeg = 0,
 }) => {
   const simClock = useSimClock();
   const orbitRef = useRef<THREE.Line | null>(null);
   const distanceRef = useRef(4000);
   const planetWorldPosition = useRef(new THREE.Vector3());
+  const [ephemerisVersion, setEphemerisVersion] = useState(0);
+
+  useEffect(() => {
+    if (!bodyId) return undefined;
+    return subscribeEphemerisLoaded((loadedBodyId) => {
+      if (loadedBodyId === bodyId || (bodyId === 'moon' && loadedBodyId === 'earth')) {
+        setEphemerisVersion((version) => version + 1);
+      }
+    });
+  }, [bodyId]);
 
   const orbitData = useMemo(() => {
     const makeLine = (sourcePoints: THREE.Vector3[]) => {
@@ -71,13 +84,14 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
 
     // Sample one full orbit centred on the current simulation time.
     const secFromJ2000 = (simTimeMs - J2000_UNIX_MS) / 1000;
+    const ma0OffsetSec = (meanAnomalyDeg / 360) * periodSec;
     const halfPeriod   = periodSec / 2;
 
     const points: THREE.Vector3[] = [];
     for (let i = 0; i <= NUM_POINTS; i++) {
       const offset = -halfPeriod + (i / NUM_POINTS) * periodSec;
       const pos = propagate(
-        secFromJ2000 + offset,
+        secFromJ2000 + ma0OffsetSec + offset,
         orbitalParams.a,
         orbitalParams.e,
         orbitalParams.inclination,
@@ -103,7 +117,9 @@ const OrbitLine: React.FC<OrbitLineProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     bodyId,
+    ephemerisVersion,
     isFocused,
+    meanAnomalyDeg,
     orbitalParams.a,
     orbitalParams.e,
     orbitalParams.inclination,

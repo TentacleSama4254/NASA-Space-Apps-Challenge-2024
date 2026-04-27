@@ -11,10 +11,11 @@ import { SaturnRingProps } from './PlanetRing';
 import { globalRefs } from '../context/GlobalRefs';
 import PlanetLabel from './PlanetLabel';
 import { BODIES } from '../domain/bodyRegistry';
-import { getBodyPosition } from '../domain/ephemerisService';
+import { getBodyPosition, loadEphemerisForBody } from '../domain/ephemerisService';
 import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 import { useCamera } from '../context/Camera';
+import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
 
 // ─── Geometry detail thresholds ───────────────────────────────────────────────
 
@@ -74,15 +75,11 @@ const Planet: React.FC<PlanetDataType> = ({
   const cameraContext = useCamera();
   const handleFocus = cameraContext ? cameraContext.handleFocus : () => {};
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
-  const { gl } = useThree();
 
   // Look up the body definition for registry-driven data.
   const bodyId = name.toLowerCase();
   const bodyDef = BODIES[bodyId];
   const labelColor = bodyDef?.labelColor ?? 'turquoise';
-
-  const textureSrc = bodyDef?.textures.low ?? texture_path ?? '/textures/8k_mercury.jpg';
-  const [surfaceMap] = useLoader(TextureLoader, [textureSrc]);
 
   const groupRef = useRef<THREE.Group>(null);
   const planetRef = useRef<THREE.Mesh>(null);
@@ -107,12 +104,17 @@ const Planet: React.FC<PlanetDataType> = ({
   const periodDays = bodyDef?.periodDays ?? (period ?? 365);
   const periodSec = periodDays * 86400;
   const ma0Deg = keplerian?.ma0 ?? 0;
+  const isFocused = focusedObject?.object === groupRef.current;
+  const shouldLoadDetails = loadDetails || isFocused;
+  const { texture: surfaceMap } = useProgressiveTexture({
+    lowSrc: bodyDef?.textures.low ?? texture_path,
+    highSrc: bodyDef?.textures.high ?? texture_path,
+    loadHigh: shouldLoadDetails,
+  });
 
   useEffect(() => {
-    surfaceMap.colorSpace = THREE.SRGBColorSpace;
-    surfaceMap.anisotropy = Math.min(16, gl.capabilities.getMaxAnisotropy());
-    surfaceMap.needsUpdate = true;
-  }, [surfaceMap, gl]);
+    if (shouldLoadDetails) loadEphemerisForBody(bodyId);
+  }, [bodyId, shouldLoadDetails]);
 
   useFrame(({ clock: r3fClock, camera }) => {
     if (!groupRef.current || !planetRef.current) return;
@@ -179,9 +181,6 @@ const Planet: React.FC<PlanetDataType> = ({
     }
   };
 
-  const isFocused = focusedObject?.object === groupRef.current;
-  const shouldLoadDetails = loadDetails || isFocused;
-
   return (
     <>
       <group ref={groupRef} userData={{ diameter }}>
@@ -194,7 +193,10 @@ const Planet: React.FC<PlanetDataType> = ({
           }}
         >
           <sphereGeometry args={[diameter / 2, segments, segments]} />
-          <meshPhongMaterial map={surfaceMap} color={0xffffff} />
+          <meshPhongMaterial
+            map={surfaceMap ?? undefined}
+            color={surfaceMap ? 0xffffff : labelColor}
+          />
         </mesh>
 
         {/* Venus atmosphere overlay — deferred until the planet is focused/nearby */}
@@ -243,6 +245,7 @@ const Planet: React.FC<PlanetDataType> = ({
         isFocused={isFocused}
         periodDays={periodDays}
         bodyId={bodyId}
+        meanAnomalyDeg={ma0Deg}
       />
     </>
   );
