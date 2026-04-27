@@ -9,12 +9,12 @@
  * starts at its correct orbital phase relative to J2000.
  */
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { propagate } from '../utils/planetCalculations';
 import { useSimClock } from '../context/SimulationClock';
-import { J2000_UNIX_MS, DISTANCE_SCALE_KM } from '../config/constants';
+import { DISTANCE_SCALE_KM } from '../config/constants';
 
 /** 1 AU in km — used to convert asteroid semi-major axes. */
 const AU_KM = 1.495978707e8;
