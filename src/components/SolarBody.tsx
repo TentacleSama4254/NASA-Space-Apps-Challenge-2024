@@ -20,6 +20,7 @@ import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS } from '../config/constants';
 import { useCamera } from '../context/Camera';
 import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
+import { applyBodyRotation } from '../domain/rotation';
 
 // ─── Geometry detail thresholds ───────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ const Planet: React.FC<PlanetDataType> = ({
   const labelColor = bodyDef?.labelColor ?? 'turquoise';
 
   const groupRef = useRef<THREE.Group>(null);
+  const axialTiltRef = useRef<THREE.Group>(null);
   const planetRef = useRef<THREE.Mesh>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const [tagOpacity, setTagOpacity] = useState(1);
@@ -120,7 +122,7 @@ const Planet: React.FC<PlanetDataType> = ({
     if (shouldLoadDetails) loadEphemerisForBody(bodyId);
   }, [bodyId, shouldLoadDetails]);
 
-  useFrame(({ clock: r3fClock, camera }) => {
+  useFrame(({ camera }) => {
     if (!groupRef.current || !planetRef.current) return;
 
     // ── Simulation time ──────────────────────────────────────────────────────
@@ -155,8 +157,8 @@ const Planet: React.FC<PlanetDataType> = ({
       groupRef.current.position.copy(absPos);
     }
 
-    // ── Self-rotation (use real elapsed time for smooth spin) ────────────────
-    planetRef.current.rotation.y = r3fClock.getElapsedTime() / 6;
+    // ── Self-rotation from physical sidereal period + axial tilt ────────────
+    applyBodyRotation(planetRef.current, axialTiltRef.current, bodyDef, simTimeMs);
 
     // ── Camera distance → label opacity + geometry LOD ───────────────────────
     const dist = camera.position.distanceTo(groupRef.current.position);
@@ -188,31 +190,33 @@ const Planet: React.FC<PlanetDataType> = ({
   return (
     <>
       <group ref={groupRef} userData={{ diameter }}>
-        <mesh
-          ref={planetRef}
-          userData={{ diameter }}
-          onClick={(event) => {
-            event.stopPropagation();
-            focusThisBody();
-          }}
-        >
-          <sphereGeometry args={[diameter / 2, segments, segments]} />
-          <meshPhongMaterial
-            map={surfaceMap ?? undefined}
-            color={surfaceMap ? 0xffffff : labelColor}
-          />
-        </mesh>
-
-        {/* Venus atmosphere overlay — deferred until the planet is focused/nearby */}
-        {shouldLoadDetails && texture_path1 && (
-          <Suspense fallback={null}>
-            <AtmosphereLayer
-              texturePath={texture_path1}
-              diameter={diameter}
-              meshRef={atmosphereRef}
+        <group ref={axialTiltRef}>
+          <mesh
+            ref={planetRef}
+            userData={{ diameter }}
+            onClick={(event) => {
+              event.stopPropagation();
+              focusThisBody();
+            }}
+          >
+            <sphereGeometry args={[diameter / 2, segments, segments]} />
+            <meshPhongMaterial
+              map={surfaceMap ?? undefined}
+              color={surfaceMap ? 0xffffff : labelColor}
             />
-          </Suspense>
-        )}
+          </mesh>
+
+          {/* Venus atmosphere overlay — deferred until the planet is focused/nearby */}
+          {shouldLoadDetails && texture_path1 && (
+            <Suspense fallback={null}>
+              <AtmosphereLayer
+                texturePath={texture_path1}
+                diameter={diameter}
+                meshRef={atmosphereRef}
+              />
+            </Suspense>
+          )}
+        </group>
 
         <PlanetLabel
           position={[0, 0, 0]}

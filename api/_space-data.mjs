@@ -63,6 +63,8 @@ export function buildSbdbUrl({ kind, limit }) {
       'per',
       'H',
       'diameter',
+      'rot_per',
+      'pole',
     ].join(','),
     'full-prec': 'true',
     limit: String(limit),
@@ -146,6 +148,8 @@ export function normalizeSmallBody(row) {
     per,
     diameterKm: toNumber(row.diameter),
     h: toNumber(row.H),
+    rotationPeriodHours: toNumber(row.rot_per),
+    pole: row.pole === undefined || row.pole === null ? undefined : String(row.pole),
     neo: row.neo === true || row.neo === 'Y',
     pha: row.pha === true || row.pha === 'Y',
     source: 'sbdb',
@@ -179,4 +183,3 @@ export function normalizeCloseApproach(row) {
     source: 'cad',
   };
 }
-

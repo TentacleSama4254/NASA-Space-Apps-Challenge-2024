@@ -9,9 +9,9 @@ import {
 } from './_space-data.mjs';
 
 const DEFAULT_LIMITS = {
-  'main-belt': 20_000,
-  neo: 8_000,
-  pha: 2_500,
+  'main-belt': 60_000,
+  neo: 25_000,
+  pha: 5_000,
 };
 
 export default async function handler(req, res) {
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   const kind = ['neo', 'pha', 'main-belt'].includes(requestedKind)
     ? requestedKind
     : 'neo';
-  const limit = clampNumber(query.get('limit'), DEFAULT_LIMITS[kind], 1, 20_000);
+  const limit = clampNumber(query.get('limit'), DEFAULT_LIMITS[kind], 1, 100_000);
   const upstreamUrl = buildSbdbUrl({ kind, limit });
 
   try {

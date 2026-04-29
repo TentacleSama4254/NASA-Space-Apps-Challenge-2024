@@ -15,9 +15,9 @@ interface JplArrayResponse {
 }
 
 const DEFAULT_LIMITS: Record<AsteroidCatalogKind, number> = {
-  'main-belt': 20_000,
-  neo: 8_000,
-  pha: 2_500,
+  'main-belt': 60_000,
+  neo: 25_000,
+  pha: 5_000,
 };
 
 const SBDB_QUERY_URL = 'https://ssd-api.jpl.nasa.gov/sbdb_query.api';
@@ -111,6 +111,8 @@ function buildDirectSbdbUrl(kind: AsteroidCatalogKind, limit: number): string {
       'per',
       'H',
       'diameter',
+      'rot_per',
+      'pole',
     ].join(','),
     'full-prec': 'true',
     limit: String(limit),
@@ -254,6 +256,8 @@ function normalizeStaticRow(row: Record<string, unknown>): SmallBodyOrbit | null
     per,
     diameterKm: toFiniteNumber(row.diameter),
     h: toFiniteNumber(row.H),
+    rotationPeriodHours: toFiniteNumber(row.rot_per),
+    pole: row.pole === undefined || row.pole === null ? undefined : String(row.pole),
     neo: isTruthyFlag(row.neo),
     pha: isTruthyFlag(row.pha),
     source: row.source === 'sbdb' ? 'sbdb' : 'static',

@@ -4,9 +4,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useCamera } from '../context/Camera';
 import { useSimClock } from '../context/SimulationClock';
+import { SUN_OFFSET } from '../config/constants';
 import { fetchAsteroidCatalog, fetchCloseApproaches } from '../domain/smallBodyService';
 import type { AsteroidCatalogKind, CloseApproach, SmallBodyOrbit } from '../domain/smallBodies';
 import { writeSmallBodyPosition } from '../domain/smallBodies';
+import { rotationAngleAtTime } from '../domain/rotation';
 
 export interface AsteroidLayerToggles {
   mainBelt: boolean;
@@ -54,9 +56,9 @@ function useAsteroidCatalog(): AsteroidCatalogState {
 
     async function load(): Promise<void> {
       const [mainBelt, neo, pha, closeApproaches] = await Promise.all([
-        fetchAsteroidCatalog('main-belt', 20_000),
-        fetchAsteroidCatalog('neo', 8_000),
-        fetchAsteroidCatalog('pha', 2_500),
+        fetchAsteroidCatalog('main-belt', 60_000),
+        fetchAsteroidCatalog('neo', 25_000),
+        fetchAsteroidCatalog('pha', 5_000),
         fetchCloseApproaches(365, 0.08),
       ]);
 
@@ -163,6 +165,7 @@ const PromotedAsteroid: React.FC<PromotedAsteroidProps> = ({
   const simClock = useSimClock();
   const cameraContext = useCamera();
   const groupRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
   const position = useRef(new Float32Array(3));
   const color = closeApproach ? '#ff6b5a' : body.pha ? '#ffcf6d' : '#8dfac9';
   const radius = Math.max(0.45, Math.min(2.2, (body.diameterKm ?? 0.6) * 0.04));
@@ -172,11 +175,15 @@ const PromotedAsteroid: React.FC<PromotedAsteroidProps> = ({
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
     writeSmallBodyPosition(body, simTimeMs, position.current, 0);
     groupRef.current.position.set(position.current[0], position.current[1], position.current[2]);
+    if (meshRef.current && body.rotationPeriodHours) {
+      meshRef.current.rotation.y = rotationAngleAtTime(body.rotationPeriodHours, simTimeMs);
+    }
   });
 
   return (
     <group ref={groupRef} userData={{ diameter: radius * 2 }}>
       <mesh
+        ref={meshRef}
         userData={{ diameter: radius * 2 }}
         onClick={(event) => {
           event.stopPropagation();
@@ -294,7 +301,7 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
   }, [bodies, closeApproachMap]);
 
   return (
-    <>
+    <group position={[SUN_OFFSET.x, SUN_OFFSET.y, SUN_OFFSET.z]}>
       <points ref={pointsRef} geometry={geometry}>
         <pointsMaterial
           map={circleTexture}
@@ -320,7 +327,7 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
           />
         );
       })}
-    </>
+    </group>
   );
 };
 

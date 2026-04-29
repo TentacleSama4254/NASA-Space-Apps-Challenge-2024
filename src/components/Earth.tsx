@@ -29,6 +29,7 @@ import { useSimClock } from '../context/SimulationClock';
 import { J2000_UNIX_MS, SUN_OFFSET } from '../config/constants';
 import { useCamera } from '../context/Camera';
 import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
+import { applyBodyRotation } from '../domain/rotation';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -186,6 +187,7 @@ const Earth: React.FC<EarthProps> = ({
   const focusedObject = cameraContext ? cameraContext.focusedObject : null;
 
   const groupRef  = useRef<THREE.Group | null>(null);
+  const axialTiltRef = useRef<THREE.Group | null>(null);
   const earthRef  = useRef<THREE.Mesh | null>(null);
   const meshRef   = useRef<THREE.InstancedMesh>(null);
 
@@ -219,7 +221,7 @@ const Earth: React.FC<EarthProps> = ({
     loadEphemerisForBody('moon');
   }, [isFocused]);
 
-  useFrame(({ clock: r3fClock, camera }) => {
+  useFrame(({ camera }) => {
     if (!groupRef.current || !earthRef.current) return;
 
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
@@ -252,11 +254,8 @@ const Earth: React.FC<EarthProps> = ({
 
     groupRef.current.position.copy(absPos);
 
-    // ── Self-rotation (axial tilt 23.4°, real-time spin) ─────────────────────
-    const elapsedReal = r3fClock.getElapsedTime();
-    const tilt = (-23.4 * Math.PI) / 180;
-    earthRef.current.rotation.x = tilt;
-    earthRef.current.rotation.y = elapsedReal / 6;
+    // ── Self-rotation from physical sidereal period + axial tilt ────────────
+    applyBodyRotation(earthRef.current, axialTiltRef.current, EARTH_DEF, simTimeMs);
 
     // ── LOD ──────────────────────────────────────────────────────────────────
     const dist = camera.position.distanceTo(absPos);
@@ -306,21 +305,23 @@ const Earth: React.FC<EarthProps> = ({
           <ambientLight intensity={0.03} />
 
           {/* Base surface starts low-res, then promotes to 8K while Earth is focused. */}
-          <mesh ref={earthRef}>
-            <sphereGeometry args={[earthSize, segments, segments]} />
-            <meshStandardMaterial
-              map={colourMap ?? undefined}
-              color={colourMap ? 0xffffff : EARTH_DEF.textures.placeholder}
-              roughness={0.82}
-            />
+          <group ref={axialTiltRef}>
+            <mesh ref={earthRef}>
+              <sphereGeometry args={[earthSize, segments, segments]} />
+              <meshStandardMaterial
+                map={colourMap ?? undefined}
+                color={colourMap ? 0xffffff : EARTH_DEF.textures.placeholder}
+                roughness={0.82}
+              />
 
-            {/* Load detail textures only when camera is close */}
-            {showDetail && (
-              <Suspense fallback={null}>
-                <EarthDetailLayer earthRef={earthRef} />
-              </Suspense>
-            )}
-          </mesh>
+              {/* Load detail textures only when camera is close */}
+              {showDetail && (
+                <Suspense fallback={null}>
+                  <EarthDetailLayer earthRef={earthRef} />
+                </Suspense>
+              )}
+            </mesh>
+          </group>
         </instancedMesh>
 
         <PlanetLabel

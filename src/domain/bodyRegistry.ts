@@ -27,6 +27,10 @@ function moonDefinition(
       low: '/textures/lod/8k_moon_1k.jpg',
       high: '/textures/8k_moon.jpg',
     },
+    rotation: {
+      periodHours: periodDays * 24,
+      axialTiltDeg: inclination,
+    },
     keplerianElements: {
       a: semiMajorAxisKm / DISTANCE_SCALE_KM,
       e: eccentricity,
@@ -73,6 +77,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 174.796,
     },
     periodDays: 87.97,
+    rotation: {
+      periodHours: 1407.6,
+      axialTiltDeg: 0.01,
+    },
   },
 
   venus: {
@@ -97,6 +105,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 50.415,
     },
     periodDays: 224.70,
+    rotation: {
+      periodHours: -5832.5,
+      axialTiltDeg: 177.4,
+    },
   },
 
   earth: {
@@ -121,6 +133,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 357.517,
     },
     periodDays: 365.256,
+    rotation: {
+      periodHours: 23.9345,
+      axialTiltDeg: 23.4,
+    },
   },
 
   moon: {
@@ -146,6 +162,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 135.27,
     },
     periodDays: 27.321582,
+    rotation: {
+      periodHours: 655.7,
+      axialTiltDeg: 6.7,
+    },
   },
 
   mars: {
@@ -170,6 +190,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 19.412,
     },
     periodDays: 686.980,
+    rotation: {
+      periodHours: 24.623,
+      axialTiltDeg: 25.2,
+    },
   },
 
   jupiter: {
@@ -194,6 +218,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 20.020,
     },
     periodDays: 4332.589,
+    rotation: {
+      periodHours: 9.925,
+      axialTiltDeg: 3.1,
+    },
   },
 
   saturn: {
@@ -218,6 +246,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 317.020,
     },
     periodDays: 10755.699,
+    rotation: {
+      periodHours: 10.656,
+      axialTiltDeg: 26.7,
+    },
   },
 
   uranus: {
@@ -242,6 +274,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 142.955,
     },
     periodDays: 30685.400,
+    rotation: {
+      periodHours: -17.24,
+      axialTiltDeg: 97.8,
+    },
   },
 
   neptune: {
@@ -266,6 +302,10 @@ export const BODIES: Record<string, BodyDefinition> = {
       ma0: 259.905,
     },
     periodDays: 60189,
+    rotation: {
+      periodHours: 16.11,
+      axialTiltDeg: 28.3,
+    },
   },
 
   phobos: {

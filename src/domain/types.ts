@@ -19,6 +19,16 @@ export interface ModelAsset {
   credit?: string;
 }
 
+/** Physical axial rotation model. Negative periods are retrograde. */
+export interface BodyRotation {
+  /** Sidereal rotation period in hours */
+  periodHours: number;
+  /** Obliquity/axial tilt in degrees */
+  axialTiltDeg: number;
+  /** Texture prime-meridian phase offset at J2000, if known/calibrated */
+  phaseDeg?: number;
+}
+
 /** Complete physical and visual definition of a solar system body */
 export interface BodyDefinition {
   /** App-internal identifier (lowercase, e.g. "earth", "moon") */
@@ -35,6 +45,7 @@ export interface BodyDefinition {
   labelColor: string;
   textures: TextureTier;
   model?: ModelAsset;
+  rotation?: BodyRotation;
   /** Keplerian fallback elements used when ephemeris data is unavailable */
   keplerianElements?: KeplerianElements;
   /** Orbital period in Earth days (used for fallback propagation) */

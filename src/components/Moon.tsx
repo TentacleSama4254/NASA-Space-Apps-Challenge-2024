@@ -24,6 +24,7 @@ import { useCamera } from '../context/Camera';
 import { useProgressiveTexture } from '../hooks/useProgressiveTexture';
 import PlanetLabel from './PlanetLabel';
 import { globalRefs } from '../context/GlobalRefs';
+import { applyBodyRotation } from '../domain/rotation';
 
 const MIN_VISIBLE_MOON_RADIUS = 0.01;
 const IRREGULAR_RADIUS_KM = 400;
@@ -219,7 +220,7 @@ const Satellite: React.FC<SatelliteProps> = ({
     setModelReady(false);
   }, [bodyDef.model?.path]);
 
-  useFrame(({ clock: r3fClock, camera }) => {
+  useFrame(({ camera }) => {
     if (!groupRef.current || !surfaceRef.current) return;
 
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
@@ -246,7 +247,13 @@ const Satellite: React.FC<SatelliteProps> = ({
       groupRef.current.position.copy(localPos);
     }
 
-    surfaceRef.current.rotation.y = (r3fClock.getElapsedTime() / 6) * 0.037;
+    applyBodyRotation(surfaceRef.current, null, {
+      ...bodyDef,
+      rotation: bodyDef.rotation ?? {
+        periodHours: periodDays * 24,
+        axialTiltDeg: kep.inclination,
+      },
+    }, simTimeMs);
 
     groupRef.current.getWorldPosition(worldPositionRef.current);
     const dist = camera.position.distanceTo(worldPositionRef.current);

@@ -18,6 +18,8 @@ export interface SmallBodyOrbit {
   per: number;
   diameterKm?: number;
   h?: number;
+  rotationPeriodHours?: number;
+  pole?: string;
   neo: boolean;
   pha: boolean;
   source: 'sbdb' | 'static';
@@ -114,38 +116,34 @@ export function writeSmallBodyPosition(
   const secFromEpoch = (simTimeMs - jdToUnixMs(body.epoch)) / 1000;
   const meanAnomaly =
     ((body.ma * Math.PI) / 180 + (TWO_PI * secFromEpoch) / periodSec) % TWO_PI;
-  const eccentricAnomaly = solveKepler(body.e, meanAnomaly);
+  const normalizedMeanAnomaly = ((meanAnomaly % TWO_PI) + TWO_PI) % TWO_PI;
+  const eccentricAnomaly = solveKepler(body.e, normalizedMeanAnomaly);
 
   const cosE = Math.cos(eccentricAnomaly);
   const sinE = Math.sin(eccentricAnomaly);
-  let x = aScene * (cosE - body.e);
-  let y = aScene * Math.sqrt(1 - body.e * body.e) * sinE;
-  let z = 0;
+  const perifocalX = aScene * (cosE - body.e);
+  const perifocalY = aScene * Math.sqrt(1 - body.e * body.e) * sinE;
 
   const raan = (body.om * Math.PI) / 180;
   const inclination = (body.i * Math.PI) / 180;
   const periapsis = (body.w * Math.PI) / 180;
 
-  let cos = Math.cos(raan);
-  let sin = Math.sin(raan);
-  let nextX = x * cos - y * sin;
-  let nextY = x * sin + y * cos;
-  x = nextX;
-  y = nextY;
+  const cosO = Math.cos(raan);
+  const sinO = Math.sin(raan);
+  const cosI = Math.cos(inclination);
+  const sinI = Math.sin(inclination);
+  const cosW = Math.cos(periapsis);
+  const sinW = Math.sin(periapsis);
 
-  cos = Math.cos(inclination);
-  sin = Math.sin(inclination);
-  nextY = y * cos - z * sin;
-  const nextZ = y * sin + z * cos;
-  y = nextY;
-  z = nextZ;
-
-  cos = Math.cos(periapsis);
-  sin = Math.sin(periapsis);
-  nextX = x * cos - y * sin;
-  nextY = x * sin + y * cos;
-  x = nextX;
-  y = nextY;
+  const x =
+    perifocalX * (cosO * cosW - sinO * sinW * cosI) -
+    perifocalY * (cosO * sinW + sinO * cosW * cosI);
+  const y =
+    perifocalX * (sinO * cosW + cosO * sinW * cosI) +
+    perifocalY * (cosO * cosW * cosI - sinO * sinW);
+  const z =
+    perifocalX * (sinW * sinI) +
+    perifocalY * (cosW * sinI);
 
   // Match the app's existing ecliptic Z-up to three.js Y-up convention.
   target[offset] = x;
