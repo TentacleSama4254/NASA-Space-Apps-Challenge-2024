@@ -74,6 +74,7 @@ const Scene = ({
             <Moon key={bodyId} bodyId={bodyId} />
           ))}
         </SolarObj>
+        <SolarObj {...PlanetData.pluto} />
       </Sun>
 
       <AsteroidCloud toggles={asteroidLayers} onStatsChange={onAsteroidStatsChange} />

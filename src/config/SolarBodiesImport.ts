@@ -121,5 +121,19 @@ export const PlanetData: Record<string, PlanetDataType> = {
             omega: 44.971, 
             raan: 131.722,
         }
+    },
+
+    pluto : {
+        name: "Pluto",
+        diameter: 1188.3*2/distanceScaleKm,
+        period: 90561.6 * timeFactor,
+        texture_path : "/textures/pluto.jpg",
+        orbit: {
+            a: 5.90638  * Math.pow(10,9) / distanceScaleKm,
+            e: 0.24880766,
+            inclination: 17.14175,
+            omega: 113.76329,
+            raan: 110.30347,
+        }
     }
 }

@@ -308,6 +308,34 @@ export const BODIES: Record<string, BodyDefinition> = {
     },
   },
 
+  pluto: {
+    id: 'pluto',
+    horizonsId: 999,
+    name: 'Pluto',
+    type: 'planet',
+    parentId: 'sun',
+    radiusKm: 1188.3,
+    labelColor: '#c8ac93',
+    textures: {
+      placeholder: '#c8ac93',
+      low: '/textures/lod/pluto_1k.jpg',
+      high: '/textures/pluto.jpg',
+    },
+    keplerianElements: {
+      a: 5.90638e9 / DISTANCE_SCALE_KM,
+      e: 0.24880766,
+      inclination: 17.14175,
+      omega: 113.76329,
+      raan: 110.30347,
+      ma0: 14.86205,
+    },
+    periodDays: 90561.6,
+    rotation: {
+      periodHours: -153.282,
+      axialTiltDeg: 57.5,
+    },
+  },
+
   phobos: {
     id: 'phobos',
     horizonsId: 401,
@@ -598,7 +626,7 @@ export const BODIES: Record<string, BodyDefinition> = {
 /** All planet ids in order from Sun */
 export const PLANET_IDS = [
   'mercury', 'venus', 'earth', 'mars',
-  'jupiter', 'saturn', 'uranus', 'neptune',
+  'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
 ] as const;
 
 /** Moon ids rendered when their parent planet is focused/nearby. */
@@ -628,6 +656,7 @@ export const MOON_IDS_BY_PARENT = {
   ],
   uranus: ['puck', 'miranda', 'ariel', 'umbriel', 'titania', 'oberon', 'portia'],
   neptune: ['naiad', 'thalassa', 'despina', 'galatea', 'larissa', 'proteus', 'triton', 'nereid'],
+  pluto: [],
 } as const;
 
 /** Confirmed planetary moon counts from JPL SSD discovery circumstances. */
@@ -640,6 +669,7 @@ export const PLANET_MOON_COUNTS = {
   saturn: 292,
   uranus: 29,
   neptune: 16,
+  pluto: 5,
 } as const;
 
 /** Body ids with checked-in Horizons JSON files. Other rendered moons use fallback elements. */

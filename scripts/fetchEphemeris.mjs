@@ -43,6 +43,7 @@ const BODIES = [
   { id: 'saturn',  horizonsId: 699, center: '500@10',  step: '1d' },
   { id: 'uranus',  horizonsId: 799, center: '500@10',  step: '1d' },
   { id: 'neptune', horizonsId: 899, center: '500@10',  step: '1d' },
+  { id: 'pluto',   horizonsId: 999, center: '500@10',  step: '1d' },
   // Natural satellites use shorter steps for smooth sub-monthly interpolation.
   { id: 'moon',    horizonsId: 301, center: '500@399', step: '6h' },
   { id: 'phobos',  horizonsId: 401, center: '500@499', step: '3h' },
