@@ -40,12 +40,80 @@ const POINT_COLORS = {
   close: new THREE.Color('#ff786d'),
 };
 
+const WIDE_ASTEROID_POINT_SIZE = 4.8;
+const INSPECT_ASTEROID_POINT_SIZE = 0.18;
+const WIDE_ASTEROID_OPACITY = 0.88;
+const INSPECT_ASTEROID_OPACITY = 0.025;
+const ASTEROID_WORLD_RADIUS_MIN = 0.012;
+const ASTEROID_WORLD_RADIUS_MAX = 0.08;
+
+const scratchFocusPosition = new THREE.Vector3();
+
 function labelFor(body: SmallBodyOrbit): string {
   return body.name || body.designation;
 }
 
 function designationKey(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function randomFromSeed(seed: number): () => number {
+  let next = seed;
+  return () => {
+    next = Math.imul(1664525, next) + 1013904223;
+    return (next >>> 0) / 4294967296;
+  };
+}
+
+function smoothstep(edge0: number, edge1: number, value: number): number {
+  const x = THREE.MathUtils.clamp((value - edge0) / (edge1 - edge0), 0, 1);
+  return x * x * (3 - 2 * x);
+}
+
+function focusedBodyInspectionFactor(
+  camera: THREE.Camera,
+  focusedObject: { object: THREE.Object3D } | null | undefined,
+): number {
+  const object = focusedObject?.object;
+  if (!object || object.userData?.type === 'asteroid') return 0;
+
+  object.getWorldPosition(scratchFocusPosition);
+  const diameter = typeof object.userData?.diameter === 'number' ? object.userData.diameter : 0;
+  const radius = Math.max(diameter / 2, 0.02);
+  const radiusDistance = camera.position.distanceTo(scratchFocusPosition) / radius;
+  return 1 - smoothstep(34, 110, radiusDistance);
+}
+
+function makeAsteroidGeometry(body: SmallBodyOrbit, radius: number): THREE.BufferGeometry {
+  const random = randomFromSeed(hashString(body.designation));
+  const geometry = new THREE.IcosahedronGeometry(radius, 1);
+  const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+  const vertex = new THREE.Vector3();
+  const stretch = new THREE.Vector3(
+    0.82 + random() * 0.55,
+    0.64 + random() * 0.42,
+    0.78 + random() * 0.48,
+  );
+
+  for (let index = 0; index < position.count; index += 1) {
+    vertex.fromBufferAttribute(position, index);
+    const lump = 0.78 + random() * 0.45;
+    vertex.multiply(stretch).multiplyScalar(lump);
+    position.setXYZ(index, vertex.x, vertex.y, vertex.z);
+  }
+
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 function useAsteroidCatalog(): AsteroidCatalogState {
@@ -167,10 +235,18 @@ const PromotedAsteroid: React.FC<PromotedAsteroidProps> = ({
   const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const position = useRef(new Float32Array(3));
-  const color = closeApproach ? '#ff6b5a' : body.pha ? '#ffcf6d' : '#8dfac9';
-  const radius = Math.max(0.45, Math.min(2.2, (body.diameterKm ?? 0.6) * 0.04));
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  const radius = THREE.MathUtils.clamp(
+    Math.cbrt(body.diameterKm ?? 0.5) * 0.018,
+    ASTEROID_WORLD_RADIUS_MIN,
+    ASTEROID_WORLD_RADIUS_MAX,
+  );
+  const geometry = useMemo(() => makeAsteroidGeometry(body, radius), [body, radius]);
+  const baseColor = closeApproach ? '#a28f86' : body.pha ? '#9d9586' : '#8f9290';
 
-  useFrame(() => {
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  useFrame(({ camera }) => {
     if (!groupRef.current) return;
     const simTimeMs = simClock?.getSimTimeMs() ?? Date.now();
     writeSmallBodyPosition(body, simTimeMs, position.current, 0);
@@ -178,20 +254,31 @@ const PromotedAsteroid: React.FC<PromotedAsteroidProps> = ({
     if (meshRef.current && body.rotationPeriodHours) {
       meshRef.current.rotation.y = rotationAngleAtTime(body.rotationPeriodHours, simTimeMs);
     }
+    if (materialRef.current) {
+      const inspectFactor = focusedBodyInspectionFactor(camera, cameraContext?.focusedObject);
+      materialRef.current.opacity = THREE.MathUtils.lerp(0.88, 0.42, inspectFactor);
+    }
   });
 
   return (
-    <group ref={groupRef} userData={{ diameter: radius * 2 }}>
+    <group ref={groupRef} userData={{ diameter: radius * 2, type: 'asteroid' }}>
       <mesh
         ref={meshRef}
-        userData={{ diameter: radius * 2 }}
+        geometry={geometry}
+        userData={{ diameter: radius * 2, type: 'asteroid' }}
         onClick={(event) => {
           event.stopPropagation();
           if (groupRef.current) cameraContext?.handleFocus({ object: groupRef.current });
         }}
       >
-        <sphereGeometry args={[radius, 8, 8]} />
-        <meshBasicMaterial color={color} transparent opacity={0.9} />
+        <meshStandardMaterial
+          ref={materialRef}
+          color={baseColor}
+          roughness={0.95}
+          metalness={0}
+          transparent
+          opacity={0.88}
+        />
       </mesh>
       {showLabel && (
         <Html position={[0, radius * 2.8, 0]} style={{ pointerEvents: 'none' }}>
@@ -201,7 +288,7 @@ const PromotedAsteroid: React.FC<PromotedAsteroidProps> = ({
               fontFamily: "'Space Mono', monospace",
               fontSize: 11,
               whiteSpace: 'nowrap',
-              textShadow: '0 1px 8px rgba(0,0,0,0.95)',
+              textShadow: '0 1px 6px rgba(0,0,0,0.95)',
             }}
           >
             {labelFor(body)}
@@ -223,8 +310,10 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
   const simClock = useSimClock();
   const { bodies, closeApproachMap } = useVisibleAsteroids(catalog, toggles);
   const pointsRef = useRef<THREE.Points>(null);
+  const pointsMaterialRef = useRef<THREE.PointsMaterial>(null);
   const lastUpdate = useRef(0);
   const circleTexture = useMemo(() => makeCircleSpriteTexture(), []);
+  const cameraContext = useCamera();
 
   const geometry = useMemo(() => {
     const positions = new Float32Array(Math.max(1, bodies.length) * 3);
@@ -270,7 +359,27 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
     onStatsChange?.({ visible: bodies.length, loading: catalog.loading });
   }, [bodies.length, catalog.loading, onStatsChange]);
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
+    const inspectFactor = focusedBodyInspectionFactor(camera, cameraContext?.focusedObject);
+    if (pointsMaterialRef.current) {
+      pointsMaterialRef.current.size = THREE.MathUtils.lerp(
+        WIDE_ASTEROID_POINT_SIZE,
+        INSPECT_ASTEROID_POINT_SIZE,
+        inspectFactor,
+      );
+      pointsMaterialRef.current.opacity = THREE.MathUtils.lerp(
+        WIDE_ASTEROID_OPACITY,
+        INSPECT_ASTEROID_OPACITY,
+        inspectFactor,
+      );
+      const nextBlending =
+        inspectFactor > 0.16 ? THREE.NormalBlending : THREE.AdditiveBlending;
+      if (pointsMaterialRef.current.blending !== nextBlending) {
+        pointsMaterialRef.current.blending = nextBlending;
+        pointsMaterialRef.current.needsUpdate = true;
+      }
+    }
+
     const now = performance.now();
     if (now - lastUpdate.current < 220) return;
     lastUpdate.current = now;
@@ -304,13 +413,14 @@ const AsteroidCloud: React.FC<AsteroidCloudProps> = ({ toggles, onStatsChange })
     <group position={[SUN_OFFSET.x, SUN_OFFSET.y, SUN_OFFSET.z]}>
       <points ref={pointsRef} geometry={geometry}>
         <pointsMaterial
+          ref={pointsMaterialRef}
           map={circleTexture}
           alphaTest={0.02}
-          size={4.8}
+          size={WIDE_ASTEROID_POINT_SIZE}
           sizeAttenuation
           vertexColors
           transparent
-          opacity={0.88}
+          opacity={WIDE_ASTEROID_OPACITY}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />

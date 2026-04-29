@@ -1,4 +1,3 @@
-import { Stars } from '@react-three/drei';
 import { useEffect } from 'react';
 import { CameraProvider } from '../context/Camera';
 import Earth from './Earth';
@@ -10,6 +9,7 @@ import SolarObj from './SolarBody';
 import { PlanetData, distanceScaleKm } from '../config/SolarBodiesImport';
 import { preloadEphemeris } from '../domain/ephemerisService';
 import { MOON_IDS_BY_PARENT } from '../domain/bodyRegistry';
+import ProceduralStarfield from './sky/ProceduralStarfield';
 
 // ─── Scene ────────────────────────────────────────────────────────────────────
 
@@ -78,7 +78,7 @@ const Scene = ({
 
       <AsteroidCloud toggles={asteroidLayers} onStatsChange={onAsteroidStatsChange} />
 
-      <Stars depth={150000} factor={696} saturation={124} />
+      <ProceduralStarfield />
     </CameraProvider>
   );
 };
