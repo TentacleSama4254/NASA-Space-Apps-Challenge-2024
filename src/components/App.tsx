@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
+import { Analytics } from '@vercel/analytics/react';
 import Scene from './Scene';
 import Loader from './Loader';
 import ToolbarBubble from './UI/Toolbar';
@@ -57,6 +58,7 @@ const App = () => {
         asteroidStats={asteroidStats}
       />
       <ScaleBar />
+      <Analytics />
       </div>
     </SimulationClockProvider>
   );
