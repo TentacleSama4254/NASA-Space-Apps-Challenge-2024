@@ -2,21 +2,27 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const SKY_RADIUS = 520000;
+const SKY_RADIUS = 90000;
+const SKY_DOME_RADIUS = 22000;
+const NEAR_STAR_RADIUS = 18000;
 const STAR_COUNT = 12000;
+const NEAR_STAR_COUNT = 900;
 const CLUSTER_COUNT = 6;
 const CLUSTER_STARS = 260;
 
 const SKY_VERTEX_SHADER = `
+  uniform float uZoomResponse;
   varying vec3 vDirection;
 
   void main() {
-    vDirection = normalize(position);
+    vec3 direction = normalize(position);
+    vDirection = normalize(mix(direction, normalize(direction + vec3(0.04, -0.025, 0.018)), uZoomResponse * 0.28));
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 const SKY_FRAGMENT_SHADER = `
+  uniform float uZoomResponse;
   varying vec3 vDirection;
 
   float hash(vec3 p) {
@@ -73,8 +79,10 @@ const SKY_FRAGMENT_SHADER = `
     float detail = fbm(dir * 18.0 + vec3(8.0, 1.5, 4.0));
     float dustLane = smoothstep(0.028, 0.0, planeDistance) * smoothstep(0.42, 0.9, detail);
 
+    float zoomLift = mix(0.82, 1.18, uZoomResponse);
     float glow = broadBand * (0.08 + clouds * 0.17) + innerBand * 0.075 + core * 0.32;
     glow *= 1.0 - dustLane * 0.55;
+    glow *= zoomLift;
 
     vec3 coolHaze = vec3(0.22, 0.34, 0.62);
     vec3 warmCore = vec3(0.78, 0.58, 0.38);
@@ -82,12 +90,13 @@ const SKY_FRAGMENT_SHADER = `
     vec3 color = mix(coolHaze, violetDust, clouds * 0.45);
     color = mix(color, warmCore, core * 0.8);
 
-    float alpha = clamp(glow, 0.0, 0.22);
+    float alpha = clamp(glow, 0.0, mix(0.13, 0.2, uZoomResponse));
     gl_FragColor = vec4(color * glow * 1.45, alpha);
   }
 `;
 
 const STAR_VERTEX_SHADER = `
+  uniform float uZoomResponse;
   attribute float aSize;
   attribute float aAlpha;
   varying vec3 vColor;
@@ -97,7 +106,7 @@ const STAR_VERTEX_SHADER = `
     vColor = color;
     vAlpha = aAlpha;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize;
+    gl_PointSize = aSize * mix(0.86, 1.22, uZoomResponse);
   }
 `;
 
@@ -159,6 +168,7 @@ function pushStar(
   sizes: number[],
   alphas: number[],
   clusterBoost = 0,
+  radius = SKY_RADIUS,
 ) {
   const brightnessRoll = Math.pow(random(), 5.2);
   const rareBright = random() > 0.992;
@@ -178,9 +188,9 @@ function pushStar(
   );
 
   positions.push(
-    direction.x * SKY_RADIUS,
-    direction.y * SKY_RADIUS,
-    direction.z * SKY_RADIUS,
+    direction.x * radius,
+    direction.y * radius,
+    direction.z * radius,
   );
   colors.push(color.r, color.g, color.b);
   sizes.push(size);
@@ -224,39 +234,124 @@ function buildStarGeometry() {
   return geometry;
 }
 
+function buildNearStarGeometry() {
+  const random = seededRandom(88421);
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const sizes: number[] = [];
+  const alphas: number[] = [];
+  const bandNormal = new THREE.Vector3(0.31, 0.78, -0.54).normalize();
+
+  for (let index = 0; index < NEAR_STAR_COUNT; index += 1) {
+    const baseDirection = randomDirection(random);
+    const towardBand = 1 - Math.abs(baseDirection.dot(bandNormal));
+    if (towardBand < 0.55 && random() < 0.45) continue;
+
+    const radius = NEAR_STAR_RADIUS * (0.65 + random() * 0.8);
+    pushStar(
+      baseDirection,
+      random,
+      positions,
+      colors,
+      sizes,
+      alphas,
+      0.35 + random() * 0.7,
+      radius,
+    );
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));
+  geometry.setAttribute('aAlpha', new THREE.Float32BufferAttribute(alphas, 1));
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+function smoothstep(edge0: number, edge1: number, value: number) {
+  const x = THREE.MathUtils.clamp((value - edge0) / (edge1 - edge0), 0, 1);
+  return x * x * (3 - 2 * x);
+}
+
 const ProceduralStarfield = () => {
   const groupRef = useRef<THREE.Group>(null);
-  const { camera } = useThree();
+  const nearStarsRef = useRef<THREE.Points>(null);
+  const skyMaterialRef = useRef<THREE.ShaderMaterial>(null);
+  const starMaterialRef = useRef<THREE.ShaderMaterial>(null);
+  const nearStarMaterialRef = useRef<THREE.ShaderMaterial>(null);
+  const { camera, controls } = useThree() as {
+    camera: THREE.Camera;
+    controls?: { target?: THREE.Vector3 };
+  };
   const starGeometry = useMemo(buildStarGeometry, []);
+  const nearStarGeometry = useMemo(buildNearStarGeometry, []);
 
   useEffect(() => () => {
     starGeometry.dispose();
-  }, [starGeometry]);
+    nearStarGeometry.dispose();
+  }, [nearStarGeometry, starGeometry]);
 
   useFrame(() => {
     groupRef.current?.position.copy(camera.position);
+
+    if (nearStarsRef.current) {
+      nearStarsRef.current.position.copy(camera.position).multiplyScalar(-0.018);
+    }
+
+    const target = controls?.target;
+    const focusDistance = target ? camera.position.distanceTo(target) : camera.position.length();
+    const zoomResponse = 1 - smoothstep(1.2, 9000, Math.max(focusDistance, 0.001));
+
+    if (skyMaterialRef.current) skyMaterialRef.current.uniforms.uZoomResponse.value = zoomResponse;
+    if (starMaterialRef.current) starMaterialRef.current.uniforms.uZoomResponse.value = zoomResponse;
+    if (nearStarMaterialRef.current) nearStarMaterialRef.current.uniforms.uZoomResponse.value = zoomResponse;
   });
 
   return (
     <group ref={groupRef}>
-      <mesh renderOrder={-40}>
-        <sphereGeometry args={[SKY_RADIUS * 0.985, 96, 64]} />
+      <mesh frustumCulled={false} renderOrder={-1000}>
+        <sphereGeometry args={[SKY_DOME_RADIUS, 128, 72]} />
         <shaderMaterial
+          ref={skyMaterialRef}
           vertexShader={SKY_VERTEX_SHADER}
           fragmentShader={SKY_FRAGMENT_SHADER}
+          uniforms={{ uZoomResponse: { value: 0 } }}
           side={THREE.BackSide}
           transparent
-          depthTest={false}
+          depthTest
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
           toneMapped={false}
         />
       </mesh>
 
-      <points geometry={starGeometry} frustumCulled={false} renderOrder={-30}>
+      <points geometry={starGeometry} frustumCulled={false} renderOrder={-900}>
         <shaderMaterial
+          ref={starMaterialRef}
           vertexShader={STAR_VERTEX_SHADER}
           fragmentShader={STAR_FRAGMENT_SHADER}
+          uniforms={{ uZoomResponse: { value: 0 } }}
+          vertexColors
+          transparent
+          depthTest
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
+        />
+      </points>
+
+      <points
+        ref={nearStarsRef}
+        geometry={nearStarGeometry}
+        frustumCulled={false}
+        renderOrder={-850}
+      >
+        <shaderMaterial
+          ref={nearStarMaterialRef}
+          vertexShader={STAR_VERTEX_SHADER}
+          fragmentShader={STAR_FRAGMENT_SHADER}
+          uniforms={{ uZoomResponse: { value: 0 } }}
           vertexColors
           transparent
           depthTest
